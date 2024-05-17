@@ -23,3 +23,5 @@ This application allows you to manage files on the SD Card + ESP8266 adapter for
 3. Configure the App:
    - Enter the ESP's IP in the app settings.
    - You should now be able to manage files from your phone to the ESP.
+
+![alt text](https://i.imgur.com/g1aCwcg.png)
