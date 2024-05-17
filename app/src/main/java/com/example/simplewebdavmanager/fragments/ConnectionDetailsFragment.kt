@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.simplewebdavmanager.File
+import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.activities.MainActivity
 import com.example.simplewebdavmanager.adapaters.FilesAdapter
@@ -88,7 +88,6 @@ class ConnectionDetailsFragment : Fragment() {
         val activity = requireActivity() as MainActivity
         webDavAddressLiveData = activity.getWebDavAddressLiveData()
         webDavAddressLiveData.observe(viewLifecycleOwner) { webDavAddress ->
-            // Use webDavAddress here, it will be updated whenever the LiveData changes
             this.webDavAddress = webDavAddress
         }
 

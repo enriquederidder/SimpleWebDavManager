@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.simplewebdavmanager.File
+import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.R
 
 class FilesAdapter(private var files: MutableList<File>) :

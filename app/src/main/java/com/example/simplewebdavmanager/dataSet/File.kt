@@ -1,4 +1,4 @@
-package com.example.simplewebdavmanager
+package com.example.simplewebdavmanager.dataSet
 
 data class File(
     val name: String,
