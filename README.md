@@ -1,7 +1,7 @@
-## 3D Printer SD Card + ESP8266 Adapter UI Manager
+## SD Card + ESP8266 Adapter UI Manager
 
 ### Description
-This application allows you to manage files on the SD Card + ESP8266 adapter for 3D printers that lack network capabilities. It utilizes the Sardine Android and Okhttp libraries. The adapter operates a WebDav Server, enabling communication via Https commands.
+This application allows you to manage files on the SD Card + ESP8266 adapter for devices that lack network capabilities. It utilizes the Sardine Android and Okhttp libraries. The adapter operates a WebDav Server, enabling communication via Https commands.
 
 ### Libraries Used
 - [Sardine Android](https://github.com/thegrizzlylabs/sardine-android)
