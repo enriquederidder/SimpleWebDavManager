@@ -1,7 +1,7 @@
 package com.example.simplewebdavmanager.dataSet
 
 data class File(
-    val name: String,
+    var name: String,
     val path: String,
     val size: Int,
     val type: String,

@@ -19,13 +19,14 @@ import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.activities.MainActivity
 import com.example.simplewebdavmanager.adapaters.FilesAdapter
+import com.example.simplewebdavmanager.fragments.dialogFragments.FileDetailsDialogFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import java.io.InputStream
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
 
-class ConnectionDetailsFragment : Fragment() {
+class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListener {
     private lateinit var webDavAddressLiveData: LiveData<String>
 
     private lateinit var v: View
@@ -55,7 +56,7 @@ class ConnectionDetailsFragment : Fragment() {
                     } else {
                         Toast.makeText(
                             requireContext(),
-                            "Please select a .gcode file",
+                            "Please select a file",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -72,7 +73,7 @@ class ConnectionDetailsFragment : Fragment() {
 
         recyclerView = v.findViewById(R.id.recyclerFiles)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        filesAdapter = FilesAdapter(mutableListOf())
+        filesAdapter = FilesAdapter(mutableListOf(), this)
         recyclerView.adapter = filesAdapter
 
         btnAddFile = v.findViewById(R.id.floatingActionButtonAddFile)
@@ -118,7 +119,6 @@ class ConnectionDetailsFragment : Fragment() {
     private fun openFilePicker() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            // I couldnt find the mimetype for .gcode
             type = "*/*"
         }
         pickFile.launch(intent)
@@ -152,8 +152,14 @@ class ConnectionDetailsFragment : Fragment() {
     }
 
     private fun isGcodeFile(fileName: String): Boolean {
-        val pattern = Pattern.compile(".*\\.gcode$", Pattern.CASE_INSENSITIVE)
+        val pattern = Pattern.compile(".*$", Pattern.CASE_INSENSITIVE)
         return pattern.matcher(fileName).matches()
+    }
+
+    override fun onFileSelected(file: File) {
+        val dialog = FileDetailsDialogFragment.newInstance(file)
+        dialog.show(childFragmentManager, "file_details")
+
     }
 
 

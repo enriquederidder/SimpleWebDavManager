@@ -3,17 +3,15 @@ package com.example.simplewebdavmanager.activities
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toolbar
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.simplewebdavmanager.R
-import com.example.simplewebdavmanager.fragments.SetWebDavAddresDialog
+import com.example.simplewebdavmanager.fragments.dialogFragments.SetWebDavAddresDialog
 
 
 class MainActivity : AppCompatActivity() {

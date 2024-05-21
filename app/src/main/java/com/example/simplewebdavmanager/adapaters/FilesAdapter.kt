@@ -7,8 +7,13 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.R
+import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 
-class FilesAdapter(private var files: MutableList<File>) :
+class FilesAdapter(
+    private var files: MutableList<File>,
+    private val listener: ConnectionDetailsFragment
+
+) :
     RecyclerView.Adapter<FilesAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -33,8 +38,22 @@ class FilesAdapter(private var files: MutableList<File>) :
         notifyDataSetChanged()
     }
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val fileNameTextView: TextView = itemView.findViewById(R.id.textViewFileName)
         val filePathTextView: TextView = itemView.findViewById(R.id.textViewStatsFile)
+
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val file = files[position]
+                    listener.onFileSelected(file)
+                }
+            }
+        }
+    }
+
+    interface OnFileSelectedListener {
+        fun onFileSelected(file: File)
     }
 }

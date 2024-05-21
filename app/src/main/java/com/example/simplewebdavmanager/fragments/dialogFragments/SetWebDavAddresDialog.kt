@@ -1,4 +1,4 @@
-package com.example.simplewebdavmanager.fragments
+package com.example.simplewebdavmanager.fragments.dialogFragments
 
 import android.app.Dialog
 import android.os.Bundle
@@ -19,6 +19,7 @@ class SetWebDavAddresDialog : DialogFragment() {
 
         val builder = AlertDialog.Builder(requireContext())
         builder.setView(dialogView)
+            .setTitle("Set WebDAV Address")
             .setPositiveButton("Set") { dialog, _ ->
                 val webdavAddress = webdavAddressText.text.toString()
                 Log.d("WebDavAddress", webdavAddress)
