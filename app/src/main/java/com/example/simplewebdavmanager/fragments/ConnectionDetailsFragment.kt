@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -31,7 +30,6 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
     private lateinit var v: View
     private lateinit var btnAddFile: FloatingActionButton
-    private lateinit var btnListFiles: Button
     private lateinit var recyclerView: RecyclerView
     private lateinit var filesAdapter: FilesAdapter
     private lateinit var webDavAddress: String
@@ -81,11 +79,6 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             openFilePicker()
         }
 
-        btnListFiles = v.findViewById(R.id.buttonListFiles)
-        btnListFiles.setOnClickListener {
-            listAvailableFiles()
-        }
-
         val activity = requireActivity() as MainActivity
         webDavAddressLiveData = activity.getWebDavAddressLiveData()
         webDavAddressLiveData.observe(viewLifecycleOwner) { webDavAddress ->
@@ -94,8 +87,17 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
         return v
     }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-    private fun listAvailableFiles() {
+        // Observe changes in the LiveData webDavAddressLiveData
+        webDavAddressLiveData.observe(viewLifecycleOwner) { webDavAddress ->
+            this.webDavAddress = webDavAddress
+            // Call listAvailableFiles() when the WebDAV address is set
+            listAvailableFiles()
+        }
+    }
+    fun listAvailableFiles() {
         thread {
             val sardine = initSardine()
             try {
@@ -105,7 +107,9 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
                 for (file in files) {
                     val fileName = file.name
                     val filePath = file.href
-                    fileList.add(File(fileName, filePath.toString(), 0, ""))
+                    if (file.name.isNotBlank() || file.name == "SETUP.ini"){ // Skip the SETUP.ini file
+                        fileList.add(File(fileName, filePath.toString(), 0, ""))
+                    }
                 }
                 activity?.runOnUiThread {
                     filesAdapter.updateFiles(fileList)
@@ -124,7 +128,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         pickFile.launch(intent)
     }
 
-    private fun initSardine(): OkHttpSardine {
+    fun initSardine(): OkHttpSardine {
         // For the esp that hosts the webdav server its no necessary to set the credentials
         val sardine = OkHttpSardine()
         val userName = ""
@@ -160,6 +164,11 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         val dialog = FileDetailsDialogFragment.newInstance(file)
         dialog.show(childFragmentManager, "file_details")
 
+    }
+    fun deleteFileFromServer(filePath: String) {
+        val sardine = initSardine()
+        val completeFilePath = "http://$webDavAddress/$filePath"  // Construct the complete URL
+        sardine.delete(completeFilePath)
     }
 
 

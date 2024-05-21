@@ -37,6 +37,13 @@ class FilesAdapter(
         files.addAll(fileList)
         notifyDataSetChanged()
     }
+    fun deleteFile(file: File) {
+        val index = files.indexOf(file)
+        if (index != -1) {
+            files.removeAt(index)
+            notifyItemRemoved(index)
+        }
+    }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val fileNameTextView: TextView = itemView.findViewById(R.id.textViewFileName)
@@ -52,6 +59,7 @@ class FilesAdapter(
             }
         }
     }
+
 
     interface OnFileSelectedListener {
         fun onFileSelected(file: File)
