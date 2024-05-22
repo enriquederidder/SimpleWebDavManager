@@ -45,6 +45,14 @@ class FilesAdapter(
         }
     }
 
+    fun renameFile(file: File, newName: String) {
+        val index = files.indexOf(file)
+        if (index != -1) {
+            files[index].name = newName
+            notifyItemChanged(index)
+        }
+    }
+
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val fileNameTextView: TextView = itemView.findViewById(R.id.textViewFileName)
         val filePathTextView: TextView = itemView.findViewById(R.id.textViewStatsFile)

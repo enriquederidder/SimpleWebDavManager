@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -33,6 +34,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
     private lateinit var recyclerView: RecyclerView
     private lateinit var filesAdapter: FilesAdapter
     private lateinit var webDavAddress: String
+    private lateinit var textSetAddress: TextView
 
     private val pickFile =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -68,13 +70,15 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
     ): View {
         // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_connection_details, container, false)
-
+        btnAddFile = v.findViewById(R.id.floatingActionButtonAddFile)
         recyclerView = v.findViewById(R.id.recyclerFiles)
+
+        textSetAddress = v.findViewById(R.id.textViewSetAddress)
+
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         filesAdapter = FilesAdapter(mutableListOf(), this)
         recyclerView.adapter = filesAdapter
 
-        btnAddFile = v.findViewById(R.id.floatingActionButtonAddFile)
         btnAddFile.setOnClickListener {
             openFilePicker()
         }
@@ -95,6 +99,8 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             this.webDavAddress = webDavAddress
             // Call listAvailableFiles() when the WebDAV address is set
             listAvailableFiles()
+            textSetAddress.visibility = View.GONE
+
         }
     }
     fun listAvailableFiles() {
@@ -107,8 +113,8 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
                 for (file in files) {
                     val fileName = file.name
                     val filePath = file.href
-                    if (file.name.isNotBlank() || file.name == "SETUP.ini"){ // Skip the SETUP.ini file
-                        fileList.add(File(fileName, filePath.toString(), 0, ""))
+                    if (file.name.isNotBlank() && file.name != "SETUP.ini"){ // Skip the SETUP.ini file
+                        fileList.add(File(fileName, filePath.toString(),  0, ""))
                     }
                 }
                 activity?.runOnUiThread {
@@ -169,6 +175,19 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         val sardine = initSardine()
         val completeFilePath = "http://$webDavAddress/$filePath"  // Construct the complete URL
         sardine.delete(completeFilePath)
+    }
+
+    fun renameFileOnServer(filePath: String, newFileName: String) {
+        thread {
+            val sardine = initSardine()
+            try {
+                val completeFilePath = "http://$webDavAddress/$filePath" // Original file path
+                val newFilePath = "http://$webDavAddress/${newFileName}" // New file path
+                sardine.move(completeFilePath, newFilePath)
+            } catch (e: Exception) {
+                Log.e("RenameFile", "Error renaming file", e)
+            }
+        }
     }
 
 

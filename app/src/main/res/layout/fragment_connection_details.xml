@@ -25,4 +25,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewSetAddress"
+        android:layout_width="297dp"
+        android:layout_height="142dp"
+        android:gravity="center"
+        android:text="@string/setAddres"
+        android:textColor="#959595"
+        android:textColorHint="#434343"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/recyclerFiles"
+        app:layout_constraintEnd_toEndOf="@+id/recyclerFiles"
+        app:layout_constraintStart_toStartOf="@+id/recyclerFiles"
+        app:layout_constraintTop_toTopOf="@+id/recyclerFiles" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -28,13 +28,22 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
         val builder = AlertDialog.Builder(requireContext())
         builder.setView(dialogView)
             .setTitle("File Details")
-            .setPositiveButton("Set") { dialog, _ ->
-
-
-
-                dialog.dismiss()
-            }
-            .setNegativeButton("Exit") { dialog, _ ->
+            .setPositiveButton("Rename") { dialog, _ ->
+                val newName = fileName.text.toString()
+                if (newName.isNotEmpty()) {
+                    thread {
+                        try {
+                            connectionDetailsFragment = parentFragment as? ConnectionDetailsFragment
+                            connectionDetailsFragment?.renameFileOnServer(file.path, newName)
+                        } catch (e: Exception) {
+                            Log.e("RenameFile", "Error renaming file", e)
+                        }
+                    }
+                    connectionDetailsFragment?.let {
+                        val adapter = it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
+                        adapter?.renameFile(file, newName)
+                    }
+                }
                 dialog.dismiss()
             }
 
@@ -43,8 +52,6 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
                     try {
                         connectionDetailsFragment = parentFragment as? ConnectionDetailsFragment
                         connectionDetailsFragment?.deleteFileFromServer(file.path)
-
-
 
                     } catch (e: Exception) {
                         Log.e("DeleteFile", "Error deleting file", e)
@@ -56,7 +63,9 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
                 }
                 dialog.dismiss()
             }
-
+            .setNegativeButton("Exit") { dialog, _ ->
+                dialog.dismiss()
+            }
         return builder.create()
     }
 
