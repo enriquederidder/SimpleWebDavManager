@@ -23,7 +23,7 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
         val fileName = dialogView.findViewById<EditText>(R.id.editTextFileName)
         fileName.setText(file.name)
         val parentFragment = parentFragment as? ConnectionDetailsFragment
-        var connectionDetailsFragment = parentFragment as? ConnectionDetailsFragment
+        var connectionDetailsFragment = parentFragment
 
         val builder = AlertDialog.Builder(requireContext())
         builder.setView(dialogView)
@@ -33,14 +33,15 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
                 if (newName.isNotEmpty()) {
                     thread {
                         try {
-                            connectionDetailsFragment = parentFragment as? ConnectionDetailsFragment
+                            connectionDetailsFragment = parentFragment
                             connectionDetailsFragment?.renameFileOnServer(file.path, newName)
                         } catch (e: Exception) {
                             Log.e("RenameFile", "Error renaming file", e)
                         }
                     }
                     connectionDetailsFragment?.let {
-                        val adapter = it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
+                        val adapter =
+                            it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
                         adapter?.renameFile(file, newName)
                     }
                 }
@@ -50,7 +51,7 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
             .setNeutralButton("Delete") { dialog, _ ->
                 thread {
                     try {
-                        connectionDetailsFragment = parentFragment as? ConnectionDetailsFragment
+                        connectionDetailsFragment = parentFragment
                         connectionDetailsFragment?.deleteFileFromServer(file.path)
 
                     } catch (e: Exception) {
@@ -58,7 +59,8 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
                     }
                 }
                 connectionDetailsFragment?.let {
-                    val adapter = it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
+                    val adapter =
+                        it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
                     adapter?.deleteFile(file)
                 }
                 dialog.dismiss()

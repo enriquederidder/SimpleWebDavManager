@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_items, menu)
         return true
@@ -52,6 +53,7 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
     fun getWebDavAddressLiveData(): LiveData<String> {
         return webDavAddressLiveData
     }

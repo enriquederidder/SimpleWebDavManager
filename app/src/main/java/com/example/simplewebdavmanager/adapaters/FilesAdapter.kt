@@ -5,8 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.R
+import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 
 class FilesAdapter(
@@ -37,6 +37,7 @@ class FilesAdapter(
         files.addAll(fileList)
         notifyDataSetChanged()
     }
+
     fun deleteFile(file: File) {
         val index = files.indexOf(file)
         if (index != -1) {

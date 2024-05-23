@@ -4,5 +4,5 @@ data class File(
     var name: String,
     val path: String,
     val size: Int,
-    val type: String,
+    val type: String = name.substringAfterLast("."),
 )

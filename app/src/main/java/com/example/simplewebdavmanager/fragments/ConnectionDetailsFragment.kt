@@ -3,7 +3,6 @@ package com.example.simplewebdavmanager.fragments
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -21,17 +20,15 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.activities.MainActivity
 import com.example.simplewebdavmanager.adapaters.FilesAdapter
+import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.dialogFragments.FileDetailsDialogFragment
 import com.example.simplewebdavmanager.fragments.dialogFragments.FileDownladOrMoveDialogFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
-import java.io.FileOutputStream
 import java.io.InputStream
-import java.util.regex.Pattern
 import kotlin.concurrent.thread
 
 class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListener {
@@ -50,7 +47,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
                 val data: Intent? = result.data
                 data?.data?.let { uri ->
                     val fileName = getFileName(uri)
-                    if (fileName != null && isGcodeFile(fileName)) {
+                    if (fileName != null) {
                         val inputStream: InputStream? =
                             requireContext().contentResolver.openInputStream(uri)
                         val content = inputStream?.bufferedReader().use { it?.readText() }
@@ -99,6 +96,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
         return v
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -111,7 +109,36 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
         }
     }
-    fun listAvailableFiles() {
+
+    private fun initSardine(): OkHttpSardine {
+        // For the esp that hosts the webdav server its no necessary to set the credentials
+        val sardine = OkHttpSardine()
+        val userName = ""
+        val passWord = ""
+        sardine.setCredentials(userName, passWord)
+        return sardine
+    }
+
+    private fun openFilePicker() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        pickFile.launch(intent)
+    }
+
+    @SuppressLint("Range")
+    private fun getFileName(uri: Uri): String? {
+        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                return it.getString(it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME))
+            }
+        }
+        return null
+    }
+
+    private fun listAvailableFiles() {
         thread {
             val sardine = initSardine()
             try {
@@ -121,8 +148,8 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
                 for (file in files) {
                     val fileName = file.name
                     val filePath = file.href
-                    if (file.name.isNotBlank() && file.name != "SETUP.ini"){ // Skip the SETUP.ini file
-                        fileList.add(File(fileName, filePath.toString(),  0, ""))
+                    if (file.name.isNotBlank() && file.name != "SETUP.ini") { // Skip the SETUP.ini file
+                        fileList.add(File(fileName, filePath.toString(), 0, ""))
                     }
                 }
                 activity?.runOnUiThread {
@@ -134,55 +161,11 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         }
     }
 
-    private fun openFilePicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "*/*"
-        }
-        pickFile.launch(intent)
-    }
-
-    fun initSardine(): OkHttpSardine {
-        // For the esp that hosts the webdav server its no necessary to set the credentials
-        val sardine = OkHttpSardine()
-        val userName = ""
-        val passWord = ""
-        sardine.setCredentials(userName, passWord)
-        return sardine
-    }
-
     private fun uploadFile(sardine: OkHttpSardine, fileName: String, fileContent: String) {
         val filePath =
             "http://$webDavAddress/$fileName" // Include the original file name in the path
         val data = fileContent.toByteArray()
         sardine.put(filePath, data)
-    }
-
-    @SuppressLint("Range")
-    private fun getFileName(uri: android.net.Uri): String? {
-        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                return it.getString(it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME))
-            }
-        }
-        return null
-    }
-
-    private fun isGcodeFile(fileName: String): Boolean {
-        val pattern = Pattern.compile(".*$", Pattern.CASE_INSENSITIVE)
-        return pattern.matcher(fileName).matches()
-    }
-
-    override fun onFileSelected(file: File) {
-        val dialog = FileDetailsDialogFragment.newInstance(file)
-        dialog.show(childFragmentManager, "file_details")
-
-    }
-
-    override fun onFileSelectedLong(file: File) {
-        val dialog = FileDownladOrMoveDialogFragment.newInstance(file)
-        dialog.show(childFragmentManager, "file_details")
     }
 
     fun deleteFileFromServer(filePath: String) {
@@ -206,21 +189,22 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
     fun downloadFileFromServer(file: File) {
         val sardine = initSardine()
-        val completeFilePath = "http://$webDavAddress/${file.path}"   // Assuming file.path contains the full path
+        val completeFilePath = "http://$webDavAddress/${file.path}"
 
         thread {
             try {
-                val inputStream = sardine.get(completeFilePath)  // Download file content
+                val inputStream = sardine.get(completeFilePath) // Download file content
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Use MediaStore API for API 29 and above
+                    // MediaStore API
                     val values = ContentValues().apply {
                         put(MediaStore.Downloads.DISPLAY_NAME, file.name)
                         put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
                         put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
                     }
                     val resolver = requireContext().contentResolver
-                    val uri: Uri? = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                    val uri: Uri? =
+                        resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
 
                     uri?.let {
                         resolver.openOutputStream(it).use { outputStream ->
@@ -232,16 +216,32 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
                 }
 
                 activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "File downloaded successfully to Downloads folder", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "File downloaded successfully to Downloads folder",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } catch (e: Exception) {
                 Log.e("Download", "Error downloading file", e)
                 activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "Error downloading file", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Error downloading file", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
     }
+
+    override fun onFileSelected(file: File) {
+        val dialog = FileDetailsDialogFragment.newInstance(file)
+        dialog.show(childFragmentManager, "file_details")
+    }
+
+    override fun onFileSelectedLong(file: File) {
+        val dialog = FileDownladOrMoveDialogFragment.newInstance(file)
+        dialog.show(childFragmentManager, "file_details")
+    }
+
     companion object {
         @JvmStatic
         fun newInstance() =

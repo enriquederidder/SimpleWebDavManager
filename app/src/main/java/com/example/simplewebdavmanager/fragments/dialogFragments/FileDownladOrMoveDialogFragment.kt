@@ -3,13 +3,9 @@ package com.example.simplewebdavmanager.fragments.dialogFragments
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.os.Bundle
-import android.util.Log
-import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.recyclerview.widget.RecyclerView
 import com.example.simplewebdavmanager.R
-import com.example.simplewebdavmanager.adapaters.FilesAdapter
 import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 import kotlin.concurrent.thread
@@ -46,6 +42,7 @@ class FileDownladOrMoveDialogFragment(private val file: File) : DialogFragment()
             }
         return builder.create()
     }
+
     companion object {
         fun newInstance(file: File): FileDownladOrMoveDialogFragment {
             return FileDownladOrMoveDialogFragment(file)
