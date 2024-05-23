@@ -65,11 +65,22 @@ class FilesAdapter(
                     listener.onFileSelected(file)
                 }
             }
+            itemView.setOnLongClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val file = files[position]
+                    listener.onFileSelectedLong(file)
+                    true
+                } else {
+                    false
+                }
+            }
         }
     }
 
-
     interface OnFileSelectedListener {
         fun onFileSelected(file: File)
+        fun onFileSelectedLong(file: File)
     }
+
 }

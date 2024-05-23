@@ -2,8 +2,14 @@ package com.example.simplewebdavmanager.fragments
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -20,8 +26,10 @@ import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.activities.MainActivity
 import com.example.simplewebdavmanager.adapaters.FilesAdapter
 import com.example.simplewebdavmanager.fragments.dialogFragments.FileDetailsDialogFragment
+import com.example.simplewebdavmanager.fragments.dialogFragments.FileDownladOrMoveDialogFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
@@ -171,6 +179,12 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         dialog.show(childFragmentManager, "file_details")
 
     }
+
+    override fun onFileSelectedLong(file: File) {
+        val dialog = FileDownladOrMoveDialogFragment.newInstance(file)
+        dialog.show(childFragmentManager, "file_details")
+    }
+
     fun deleteFileFromServer(filePath: String) {
         val sardine = initSardine()
         val completeFilePath = "http://$webDavAddress/$filePath"  // Construct the complete URL
@@ -190,7 +204,44 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         }
     }
 
+    fun downloadFileFromServer(file: File) {
+        val sardine = initSardine()
+        val completeFilePath = "http://$webDavAddress/${file.path}"   // Assuming file.path contains the full path
 
+        thread {
+            try {
+                val inputStream = sardine.get(completeFilePath)  // Download file content
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Use MediaStore API for API 29 and above
+                    val values = ContentValues().apply {
+                        put(MediaStore.Downloads.DISPLAY_NAME, file.name)
+                        put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
+                        put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                    }
+                    val resolver = requireContext().contentResolver
+                    val uri: Uri? = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+
+                    uri?.let {
+                        resolver.openOutputStream(it).use { outputStream ->
+                            inputStream.copyTo(outputStream!!)
+                        }
+                    }
+                } else {
+
+                }
+
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "File downloaded successfully to Downloads folder", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("Download", "Error downloading file", e)
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "Error downloading file", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
     companion object {
         @JvmStatic
         fun newInstance() =
