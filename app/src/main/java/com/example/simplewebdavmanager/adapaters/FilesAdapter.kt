@@ -3,6 +3,7 @@ package com.example.simplewebdavmanager.adapaters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.simplewebdavmanager.R
@@ -12,9 +13,9 @@ import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 class FilesAdapter(
     private var files: MutableList<File>,
     private val listener: ConnectionDetailsFragment
+) : RecyclerView.Adapter<FilesAdapter.ViewHolder>() {
 
-) :
-    RecyclerView.Adapter<FilesAdapter.ViewHolder>() {
+    private var filteredFiles: MutableList<File> = files
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -23,19 +24,31 @@ class FilesAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val file = files[position]
+        val file = filteredFiles[position]
         holder.fileNameTextView.text = file.name
         holder.filePathTextView.text = file.path
+
+        when (file.type) {
+            "png", "jpg", "jpeg" -> holder.imageView.setImageResource(R.drawable.image_document)
+            "pdf" -> holder.imageView.setImageResource(R.drawable.pdf_document)
+            "txt" -> holder.imageView.setImageResource(R.drawable.txt_documen)
+            "mp3" -> holder.imageView.setImageResource(R.drawable.audio_document)
+            "mp4" -> holder.imageView.setImageResource(R.drawable.video_document)
+            "zip" -> holder.imageView.setImageResource(R.drawable.zip_document)
+            "xml" -> holder.imageView.setImageResource(R.drawable.xml_document)
+            "exe" -> holder.imageView.setImageResource(R.drawable.exe_document)
+            "docx", "doc", "docm", "dot", "dotx", "dotm" -> holder.imageView.setImageResource(R.drawable.word_document)
+            else -> holder.imageView.setImageResource(android.R.drawable.ic_menu_report_image)
+        }
     }
 
     override fun getItemCount(): Int {
-        return files.size
+        return filteredFiles.size
     }
 
     fun updateFiles(fileList: MutableList<File>) {
-        files.clear()
-        files.addAll(fileList)
-        notifyDataSetChanged()
+        files = fileList
+        filterFiles("")
     }
 
     fun deleteFile(file: File) {
@@ -54,22 +67,32 @@ class FilesAdapter(
         }
     }
 
+    fun filterFiles(query: String) {
+        filteredFiles = if (query.isEmpty()) {
+            files
+        } else {
+            files.filter { it.name.contains(query, ignoreCase = true) }.toMutableList()
+        }
+        notifyDataSetChanged()
+    }
+
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val fileNameTextView: TextView = itemView.findViewById(R.id.textViewFileName)
         val filePathTextView: TextView = itemView.findViewById(R.id.textViewStatsFile)
+        val imageView: ImageView = itemView.findViewById(R.id.imageViewFileTypeIcon)
 
         init {
             itemView.setOnClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    val file = files[position]
+                    val file = filteredFiles[position]
                     listener.onFileSelected(file)
                 }
             }
             itemView.setOnLongClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    val file = files[position]
+                    val file = filteredFiles[position]
                     listener.onFileSelectedLong(file)
                     true
                 } else {

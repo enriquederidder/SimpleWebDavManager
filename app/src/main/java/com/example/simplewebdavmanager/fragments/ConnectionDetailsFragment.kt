@@ -92,26 +92,17 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         webDavAddressLiveData = activity.getWebDavAddressLiveData()
         webDavAddressLiveData.observe(viewLifecycleOwner) { webDavAddress ->
             this.webDavAddress = webDavAddress
-        }
-
-        return v
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Observe changes in the LiveData webDavAddressLiveData
-        webDavAddressLiveData.observe(viewLifecycleOwner) { webDavAddress ->
-            this.webDavAddress = webDavAddress
             // Call listAvailableFiles() when the WebDAV address is set
             listAvailableFiles()
             textSetAddress.visibility = View.GONE
 
         }
+
+        return v
     }
 
     private fun initSardine(): OkHttpSardine {
-        // For the esp that hosts the webdav server its no necessary to set the credentials
+        // For the esp that hosts the webdav server its not necessary to set the credentials
         val sardine = OkHttpSardine()
         val userName = ""
         val passWord = ""
@@ -146,10 +137,21 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
                 val files = sardine.list("http://$webDavAddress/")
                 val fileList = mutableListOf<File>()
                 for (file in files) {
-                    val fileName = file.name
-                    val filePath = file.href
+                    val fileName = file.name // File name
+                    val filePath = file.href // Absolute path
+                    val isDir = file.isDirectory // Check if it's a directory
+                    val modifiedDate = file.modified // Last modified date
+                    val size = file.contentLength // File size in bytes
                     if (file.name.isNotBlank() && file.name != "SETUP.ini") { // Skip the SETUP.ini file
-                        fileList.add(File(fileName, filePath.toString(), 0, ""))
+                        fileList.add(File(
+                            fileName,
+                            filePath.toString(), size, fileName.substringAfterLast("."), modifiedDate, isDir ))
+                        Log.d("WebDAVFiles",
+                            "File: $fileName " +
+                                    "(${if (isDir) "Directory" else "File"}) " +
+                                    "- Size: $size bytes " +
+                                    "- Modified: $modifiedDate " +
+                                    "- Path: $filePath ")
                     }
                 }
                 activity?.runOnUiThread {
@@ -242,6 +244,10 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         dialog.show(childFragmentManager, "file_details")
     }
 
+    fun filterFiles(query: String) {
+        filesAdapter.filterFiles(query)
+    }
+
     companion object {
         @JvmStatic
         fun newInstance() =
@@ -252,3 +258,4 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             }
     }
 }
+

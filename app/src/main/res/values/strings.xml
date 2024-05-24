@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">3DConnect</string>
+    <string name="app_name">WebDav Connect</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="setAddres">Please set your WebDav address in the settings menu to list your files</string>

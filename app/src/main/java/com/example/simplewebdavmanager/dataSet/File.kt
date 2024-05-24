@@ -1,8 +1,12 @@
 package com.example.simplewebdavmanager.dataSet
 
+import java.util.Date
+
 data class File(
     var name: String,
     val path: String,
-    val size: Int,
-    val type: String = name.substringAfterLast("."),
+    val size: Long,
+    val type: String,
+    val lastModified: Date,
+    val isDirectory: Boolean
 )
