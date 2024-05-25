@@ -26,7 +26,17 @@ class FilesAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val file = filteredFiles[position]
         holder.fileNameTextView.text = file.name
-        holder.filePathTextView.text = file.path
+        val fileSize = file.size
+        if (fileSize < 0){ // if it is a folder
+            holder.fileSizeView.text = ""
+        }else{
+            holder.fileSizeView.text = when {
+                fileSize < 1024 -> "$fileSize B"
+                fileSize < 1024 * 1024 -> "${fileSize / 1024} KB"
+                fileSize < 1024 * 1024 * 1024 -> "${fileSize / (1024 * 1024)} MB"
+                else -> "${fileSize / (1024 * 1024 * 1024)} GB"
+            }
+        }
 
         when (file.type) {
             "png", "jpg", "jpeg" -> holder.imageView.setImageResource(R.drawable.image_document)
@@ -82,7 +92,7 @@ class FilesAdapter(
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val fileNameTextView: TextView = itemView.findViewById(R.id.textViewFileName)
-        val filePathTextView: TextView = itemView.findViewById(R.id.textViewStatsFile)
+        val fileSizeView: TextView = itemView.findViewById(R.id.textViewSize)
         val imageView: ImageView = itemView.findViewById(R.id.imageViewFileTypeIcon)
 
         init {
