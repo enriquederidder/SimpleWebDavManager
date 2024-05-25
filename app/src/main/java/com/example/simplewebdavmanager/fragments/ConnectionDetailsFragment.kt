@@ -28,6 +28,7 @@ import com.example.simplewebdavmanager.fragments.dialogFragments.FileDetailsDial
 import com.example.simplewebdavmanager.fragments.dialogFragments.FileDownladOrMoveDialogFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
+import java.io.IOException
 import java.io.InputStream
 import kotlin.concurrent.thread
 
@@ -36,10 +37,12 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
     private lateinit var v: View
     private lateinit var btnAddFile: FloatingActionButton
+    private lateinit var btnBack: FloatingActionButton
     private lateinit var recyclerView: RecyclerView
     private lateinit var filesAdapter: FilesAdapter
     private lateinit var webDavAddress: String
     private lateinit var textSetAddress: TextView
+    private var currentPath: String = ""
 
     private val pickFile =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -76,6 +79,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_connection_details, container, false)
         btnAddFile = v.findViewById(R.id.floatingActionButtonAddFile)
+        btnBack = v.findViewById(R.id.floatingActionButtonBack)
         recyclerView = v.findViewById(R.id.recyclerFiles)
 
         textSetAddress = v.findViewById(R.id.textViewSetAddress)
@@ -86,6 +90,9 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
         btnAddFile.setOnClickListener {
             openFilePicker()
+        }
+        btnBack.setOnClickListener {
+            navigateBack()
         }
 
         val activity = requireActivity() as MainActivity
@@ -129,39 +136,75 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         return null
     }
 
-    private fun listAvailableFiles() {
+    private fun listAvailableFiles(directoryPath: String = "") {
+        currentPath = directoryPath
+        updateBackButtonVisibility()  // Update visibility of btnBack
+        Log.d("WebDavAddress", "Directory Path: $directoryPath")
         thread {
             val sardine = initSardine()
-            try {
-                Log.d("WebDavAddress", "http://$webDavAddress/")
-                val files = sardine.list("http://$webDavAddress/")
-                val fileList = mutableListOf<File>()
-                for (file in files) {
-                    val fileName = file.name // File name
-                    val filePath = file.href // Absolute path
-                    val isDir = file.isDirectory // Check if it's a directory
-                    val modifiedDate = file.modified // Last modified date
-                    val size = file.contentLength // File size in bytes
-                    if (file.name.isNotBlank() && file.name != "SETUP.ini") { // Skip the SETUP.ini file
-                        fileList.add(File(
-                            fileName,
-                            filePath.toString(), size, fileName.substringAfterLast("."), modifiedDate, isDir ))
-                        Log.d("WebDAVFiles",
-                            "File: $fileName " +
-                                    "(${if (isDir) "Directory" else "File"}) " +
-                                    "- Size: $size bytes " +
-                                    "- Modified: $modifiedDate " +
-                                    "- Path: $filePath ")
+            val fullPath = "http://$webDavAddress$directoryPath"
+            Log.d("WebDavAddress", fullPath)
+            val maxRetries = 3
+            var attempts = 0
+
+            while (attempts < maxRetries) {
+                try {
+                    val files = sardine.list(fullPath)
+                    val fileList = mutableListOf<File>()
+                    for (file in files) {
+                        val fileName = file.name // File name
+                        val filePath = file.href // Absolute path
+                        val isDir = file.isDirectory // Check if it's a directory
+                        val modifiedDate = file.modified // Last modified date
+                        val size = file.contentLength // File size in bytes
+                        if (fileName.isNotBlank() && fileName != "SETUP.ini" && fileName != currentPath.substringAfterLast("/")) { // Skip the SETUP.ini file and skip the current directory
+                            fileList.add(
+                                File(
+                                    fileName,
+                                    filePath.toString(),
+                                    size,
+                                    fileName.substringAfterLast("."),
+                                    modifiedDate,
+                                    isDir
+                                )
+                            )
+                            Log.d(
+                                "WebDAVFiles",
+                                "File: $fileName " +
+                                        "(${if (isDir) "Directory" else "File"}) " +
+                                        "- Size: $size bytes " +
+                                        "- Modified: $modifiedDate " +
+                                        "- Path: $filePath "
+                            )
+                        }
                     }
+                    activity?.runOnUiThread {
+                        filesAdapter.updateFiles(fileList)
+                    }
+                    break // Exit loop if successful
+                } catch (e: IOException) {
+                    attempts++
+                    if (attempts >= maxRetries) {
+                        Log.e("WebDAVFiles", "Error listing files after $maxRetries attempts", e)
+                    } else {
+                        Log.w("WebDAVFiles", "Retrying listing files (attempt $attempts)", e)
+                    }
+                } catch (e: Exception) {
+                    Log.e("WebDAVFiles", "Unexpected error", e)
+                    break // Exit loop on non-IOException
                 }
-                activity?.runOnUiThread {
-                    filesAdapter.updateFiles(fileList)
-                }
-            } catch (e: Exception) {
-                Log.e("WebDAVFiles", "Error listing files", e)
             }
         }
     }
+    override fun onFileSelected(file: File) {
+        if (file.isDirectory) {
+            navigateToDirectory(file)
+        } else {
+            val dialog = FileDetailsDialogFragment.newInstance(file)
+            dialog.show(childFragmentManager, "file_details")
+        }
+    }
+
 
     private fun uploadFile(sardine: OkHttpSardine, fileName: String, fileContent: String) {
         val filePath =
@@ -181,7 +224,8 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             val sardine = initSardine()
             try {
                 val completeFilePath = "http://$webDavAddress/$filePath" // Original file path
-                val newFilePath = "http://$webDavAddress/${newFileName}" // New file path
+                val newFilePath = "http://$webDavAddress/$currentPath/$newFileName" // New file path
+                Log.d("RenameFile", "Original File Path: $completeFilePath New File Path: $newFilePath")
                 sardine.move(completeFilePath, newFilePath)
             } catch (e: Exception) {
                 Log.e("RenameFile", "Error renaming file", e)
@@ -214,6 +258,13 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
                         }
                     }
                 } else {
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "Download not supported on this device version",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
 
                 }
 
@@ -233,12 +284,49 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             }
         }
     }
-
-    override fun onFileSelected(file: File) {
-        val dialog = FileDetailsDialogFragment.newInstance(file)
-        dialog.show(childFragmentManager, "file_details")
+    private fun navigateBack() {
+        // Check if the current path is not the root directory
+        if (currentPath.isNotEmpty()) {
+            // Extract the parent directory path
+            val parentPath = currentPath.substringBeforeLast("/")
+            // Navigate to the parent directory
+            listAvailableFiles(parentPath)
+        }
     }
 
+    private fun navigateToDirectory(directory: File) {
+        if (directory.isDirectory) {
+            val relativePath = directory.path.removePrefix("http://$webDavAddress/")
+            listAvailableFiles(relativePath)
+        }
+    }
+    private fun updateBackButtonVisibility() {
+        if (currentPath.isEmpty()) {
+            hideBackButton()
+        } else {
+            showBackButton()
+        }
+    }
+    private fun showBackButton() {
+        btnBack.apply {
+            visibility = View.VISIBLE
+            animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(300)
+                .start()
+        }
+    }
+    private fun hideBackButton() {
+        btnBack.apply {
+            animate()
+                .translationY(height.toFloat())
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction { visibility = View.GONE }
+                .start()
+        }
+    }
     override fun onFileSelectedLong(file: File) {
         val dialog = FileDownladOrMoveDialogFragment.newInstance(file)
         dialog.show(childFragmentManager, "file_details")
@@ -248,7 +336,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         filesAdapter.filterFiles(query)
     }
 
-    companion object {
+        companion object {
         @JvmStatic
         fun newInstance() =
             ConnectionDetailsFragment().apply {

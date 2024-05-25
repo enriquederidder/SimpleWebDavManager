@@ -18,6 +18,7 @@
     <color name="darkcyan">#FF008080</color>
     <color name="darkmagenta">#FF800080</color>
     <color name="orange">#FB7000</color>
+    <color name="orangeLight">#EAAA77</color>
 
 
 </resources>

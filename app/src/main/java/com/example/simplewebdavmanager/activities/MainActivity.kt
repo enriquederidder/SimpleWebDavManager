@@ -5,8 +5,8 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.LiveData
@@ -38,7 +38,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Initialize the fragmentContainer
-        connectionDetailsFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment
+        connectionDetailsFragment =
+            supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

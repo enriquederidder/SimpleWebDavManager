@@ -12,7 +12,7 @@ import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 
 class FilesAdapter(
     private var files: MutableList<File>,
-    private val listener: ConnectionDetailsFragment
+    private val listener: OnFileSelectedListener
 ) : RecyclerView.Adapter<FilesAdapter.ViewHolder>() {
 
     private var filteredFiles: MutableList<File> = files
@@ -39,6 +39,10 @@ class FilesAdapter(
             "exe" -> holder.imageView.setImageResource(R.drawable.exe_document)
             "docx", "doc", "docm", "dot", "dotx", "dotm" -> holder.imageView.setImageResource(R.drawable.word_document)
             else -> holder.imageView.setImageResource(android.R.drawable.ic_menu_report_image)
+        }
+
+        if (file.isDirectory) {
+            holder.imageView.setImageResource(R.drawable.folder)
         }
     }
 
