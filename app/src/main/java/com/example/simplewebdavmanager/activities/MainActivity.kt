@@ -14,12 +14,15 @@ import androidx.lifecycle.MutableLiveData
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 import com.example.simplewebdavmanager.fragments.dialogFragments.SetWebDavAddresDialog
+import com.example.simplewebdavmanager.utils.NetworkScanner
 
 
 class MainActivity : AppCompatActivity() {
 
     private val webDavAddressLiveData = MutableLiveData<String>()
     private lateinit var connectionDetailsFragment: ConnectionDetailsFragment
+    private lateinit var networkScanner: NetworkScanner
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +43,9 @@ class MainActivity : AppCompatActivity() {
         // Initialize the fragmentContainer
         connectionDetailsFragment =
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment
+
+        networkScanner = NetworkScanner(this)
+        networkScanner.scanLocalNetwork()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
