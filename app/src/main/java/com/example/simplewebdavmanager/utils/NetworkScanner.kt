@@ -14,7 +14,8 @@ class NetworkScanner(private val context: Context) {
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     fun scanLocalNetwork() {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .build()
@@ -46,14 +47,16 @@ class NetworkScanner(private val context: Context) {
     }
 
     private fun getLocalIpAddress(network: Network): String {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val linkProperties = connectivityManager.getLinkProperties(network)
         return linkProperties?.linkAddresses?.firstOrNull()?.address?.hostAddress ?: ""
     }
 
     fun stopScanning() {
         networkCallback?.let {
-            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val connectivityManager =
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             connectivityManager.unregisterNetworkCallback(it)
         }
     }

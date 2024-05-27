@@ -8,7 +8,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.dataSet.File
-import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 
 class FilesAdapter(
     private var files: MutableList<File>,
@@ -27,9 +26,9 @@ class FilesAdapter(
         val file = filteredFiles[position]
         holder.fileNameTextView.text = file.name
         val fileSize = file.size
-        if (fileSize < 0){ // if it is a folder
+        if (fileSize < 0) { // if it is a folder
             holder.fileSizeView.text = ""
-        }else{
+        } else {
             holder.fileSizeView.text = when {
                 fileSize < 1024 -> "$fileSize B"
                 fileSize < 1024 * 1024 -> "${fileSize / 1024} KB"

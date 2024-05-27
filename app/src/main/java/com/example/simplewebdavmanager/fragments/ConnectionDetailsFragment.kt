@@ -1,6 +1,5 @@
 package com.example.simplewebdavmanager.fragments
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
@@ -26,6 +25,9 @@ import com.example.simplewebdavmanager.adapaters.FilesAdapter
 import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.dialogFragments.FileDetailsDialogFragment
 import com.example.simplewebdavmanager.fragments.dialogFragments.FileDownladOrMoveDialogFragment
+import com.example.simplewebdavmanager.utils.FilePickerUtil
+import com.example.simplewebdavmanager.utils.FilePickerUtil.openFilePicker
+import com.example.simplewebdavmanager.utils.UIUtil
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import java.io.IOException
@@ -49,7 +51,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             if (result.resultCode == Activity.RESULT_OK) {
                 val data: Intent? = result.data
                 data?.data?.let { uri ->
-                    val fileName = getFileName(uri)
+                    val fileName = FilePickerUtil.getFileName(requireContext(), uri)
                     if (fileName != null) {
                         val inputStream: InputStream? =
                             requireContext().contentResolver.openInputStream(uri)
@@ -89,11 +91,12 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         recyclerView.adapter = filesAdapter
 
         btnAddFile.setOnClickListener {
-            openFilePicker()
+            openFilePicker(this, pickFile)
         }
         btnBack.setOnClickListener {
             navigateBack()
         }
+        btnAddFile.visibility = View.GONE
 
         val activity = requireActivity() as MainActivity
         webDavAddressLiveData = activity.getWebDavAddressLiveData()
@@ -102,6 +105,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             // Call listAvailableFiles() when the WebDAV address is set
             listAvailableFiles()
             textSetAddress.visibility = View.GONE
+            btnAddFile.visibility = View.VISIBLE
 
         }
 
@@ -115,25 +119,6 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         val passWord = ""
         sardine.setCredentials(userName, passWord)
         return sardine
-    }
-
-    private fun openFilePicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "*/*"
-        }
-        pickFile.launch(intent)
-    }
-
-    @SuppressLint("Range")
-    private fun getFileName(uri: Uri): String? {
-        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                return it.getString(it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME))
-            }
-        }
-        return null
     }
 
     private fun listAvailableFiles(directoryPath: String = "") {
@@ -157,7 +142,10 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
                         val isDir = file.isDirectory // Check if it's a directory
                         val modifiedDate = file.modified // Last modified date
                         val size = file.contentLength // File size in bytes
-                        if (fileName.isNotBlank() && fileName != "SETUP.ini" && fileName != currentPath.substringAfterLast("/")) { // Skip the SETUP.ini file and skip the current directory
+                        if (fileName.isNotBlank() && fileName != "SETUP.ini" && fileName != currentPath.substringAfterLast(
+                                "/"
+                            )
+                        ) { // Skip the SETUP.ini file and skip the current directory
                             fileList.add(
                                 File(
                                     fileName,
@@ -196,6 +184,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             }
         }
     }
+
     override fun onFileSelected(file: File) {
         if (file.isDirectory) {
             navigateToDirectory(file)
@@ -225,7 +214,10 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             try {
                 val completeFilePath = "http://$webDavAddress/$filePath" // Original file path
                 val newFilePath = "http://$webDavAddress/$currentPath/$newFileName" // New file path
-                Log.d("RenameFile", "Original File Path: $completeFilePath New File Path: $newFilePath")
+                Log.d(
+                    "RenameFile",
+                    "Original File Path: $completeFilePath New File Path: $newFilePath"
+                )
                 sardine.move(completeFilePath, newFilePath)
             } catch (e: Exception) {
                 Log.e("RenameFile", "Error renaming file", e)
@@ -284,6 +276,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             }
         }
     }
+
     private fun navigateBack() {
         // Check if the current path is not the root directory
         if (currentPath.isNotEmpty()) {
@@ -300,33 +293,15 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             listAvailableFiles(relativePath)
         }
     }
+
     private fun updateBackButtonVisibility() {
         if (currentPath.isEmpty()) {
-            hideBackButton()
+            UIUtil.hideBackButton(btnBack)
         } else {
-            showBackButton()
+            UIUtil.showBackButton(btnBack)
         }
     }
-    private fun showBackButton() {
-        btnBack.apply {
-            visibility = View.VISIBLE
-            animate()
-                .translationY(0f)
-                .alpha(1f)
-                .setDuration(300)
-                .start()
-        }
-    }
-    private fun hideBackButton() {
-        btnBack.apply {
-            animate()
-                .translationY(height.toFloat())
-                .alpha(0f)
-                .setDuration(300)
-                .withEndAction { visibility = View.GONE }
-                .start()
-        }
-    }
+
     override fun onFileSelectedLong(file: File) {
         val dialog = FileDownladOrMoveDialogFragment.newInstance(file)
         dialog.show(childFragmentManager, "file_details")
@@ -336,7 +311,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         filesAdapter.filterFiles(query)
     }
 
-        companion object {
+    companion object {
         @JvmStatic
         fun newInstance() =
             ConnectionDetailsFragment().apply {
