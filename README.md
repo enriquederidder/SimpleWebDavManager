@@ -9,7 +9,7 @@ This application allows you to manage files on the SD Card + ESP8266 adapter for
 
 ### Functionalities
 - Explore files in the hosted folder of the WebDav server.
-- Delete, modify, and manage items within the server.
+- Delete, modify, dowload and manage items within the server.
 - Select a desired WebDav server to explore by entering its address.
 
 ### Getting Started
