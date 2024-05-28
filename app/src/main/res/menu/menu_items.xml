@@ -12,5 +12,10 @@
         android:title="Set WebDAV Address"
         android:icon="@drawable/plug_in"
         app:showAsAction="collapseActionView|ifRoom" />
+    <item
+        android:id="@+id/itemSearchNetwork"
+        android:title="Search WebDAV Address"
+        android:icon="@drawable/network_wired_no_route"
+        app:showAsAction="collapseActionView|ifRoom" />
 
 </menu>

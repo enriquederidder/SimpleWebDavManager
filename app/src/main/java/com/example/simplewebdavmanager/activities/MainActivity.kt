@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var connectionDetailsFragment: ConnectionDetailsFragment
     private lateinit var networkScanner: NetworkScanner
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -45,7 +44,6 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment
 
         networkScanner = NetworkScanner(this)
-        networkScanner.scanLocalNetwork()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -76,6 +74,10 @@ class MainActivity : AppCompatActivity() {
             R.id.itemSetWebdavAddres -> {
                 val dialog = SetWebDavAddresDialog()
                 dialog.show(supportFragmentManager, "dialog")
+                true
+            }
+            R.id.itemSearchNetwork -> {
+                networkScanner.scanLocalNetwork()
                 true
             }
 
