@@ -47,7 +47,7 @@ class FilesAdapter(
             "xml" -> holder.imageView.setImageResource(R.drawable.xml_document)
             "exe" -> holder.imageView.setImageResource(R.drawable.exe_document)
             "docx", "doc", "docm", "dot", "dotx", "dotm" -> holder.imageView.setImageResource(R.drawable.word_document)
-            else -> holder.imageView.setImageResource(android.R.drawable.ic_menu_report_image)
+            else -> holder.imageView.setImageResource(android.R.drawable.ic_menu_report_image) // Default image
         }
 
         if (file.isDirectory) {

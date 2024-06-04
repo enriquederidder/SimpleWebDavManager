@@ -17,6 +17,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.simplewebdavmanager.R
@@ -27,6 +29,7 @@ import com.example.simplewebdavmanager.fragments.dialogFragments.FileDetailsDial
 import com.example.simplewebdavmanager.fragments.dialogFragments.FileDownladOrMoveDialogFragment
 import com.example.simplewebdavmanager.utils.FilePickerUtil
 import com.example.simplewebdavmanager.utils.FilePickerUtil.openFilePicker
+import com.example.simplewebdavmanager.utils.NetworkScanner
 import com.example.simplewebdavmanager.utils.UIUtil
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
@@ -36,6 +39,7 @@ import kotlin.concurrent.thread
 
 class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListener {
     private lateinit var webDavAddressLiveData: LiveData<String>
+    private val possibleWebDavAddressLiveData = MutableLiveData<String>()
 
     private lateinit var v: View
     private lateinit var btnAddFile: FloatingActionButton
@@ -44,6 +48,7 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
     private lateinit var filesAdapter: FilesAdapter
     private lateinit var webDavAddress: String
     private lateinit var textSetAddress: TextView
+    private lateinit var networkScanner: NetworkScanner
     private var currentPath: String = ""
 
     private val pickFile =
@@ -111,6 +116,32 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
         return v
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        networkScanner = NetworkScanner( requireContext(), possibleWebDavAddressLiveData)
+        networkScanner.scanLocalNetwork()
+
+        possibleWebDavAddressLiveData.observe( viewLifecycleOwner, Observer { address ->
+            if (address.isNotEmpty()) {
+                webDavAddressLiveData.removeObservers(viewLifecycleOwner)
+                setWebDavAddress(address)
+                Log.d("WebDavAddress", "WebDAV Address: $address")
+            }
+
+        })
+    }
+
+    fun getWebDavAddress(): String {
+        return webDavAddress
+    }
+
+    fun setWebDavAddress(webDavAddress: String) {
+        this.webDavAddress = webDavAddress
+    }
+
+
     private fun initSardine(): OkHttpSardine {
         // For the esp that hosts the webdav server its not necessary to set the credentials
         val sardine = OkHttpSardine()

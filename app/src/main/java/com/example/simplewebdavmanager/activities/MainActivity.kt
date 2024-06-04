@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
 
     private val webDavAddressLiveData = MutableLiveData<String>()
     private lateinit var connectionDetailsFragment: ConnectionDetailsFragment
-    private lateinit var networkScanner: NetworkScanner
     private val possibleWebDavAddressLiveData = MutableLiveData<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,12 +45,7 @@ class MainActivity : AppCompatActivity() {
         connectionDetailsFragment =
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment
 
-        networkScanner = NetworkScanner(this, possibleWebDavAddressLiveData)
-        networkScanner.scanLocalNetwork()
 
-        possibleWebDavAddressLiveData.observe(this, Observer { address ->
-
-        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -82,7 +76,7 @@ class MainActivity : AppCompatActivity() {
             R.id.itemSetWebdavAddres -> {
                 val dialog = SetWebDavAddresDialog()
                 dialog.show(supportFragmentManager, "dialog")
-                Log.d("AddresList", possibleWebDavAddressLiveData.value.toString() )
+                //Log.d("AddresList", possibleWebDavAddressLiveData.value.toString() )
                 true
             }
 
