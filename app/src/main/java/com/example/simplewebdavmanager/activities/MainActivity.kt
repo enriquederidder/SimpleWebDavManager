@@ -1,6 +1,7 @@
 package com.example.simplewebdavmanager.activities
 
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.enableEdgeToEdge
@@ -11,6 +12,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 import com.example.simplewebdavmanager.fragments.dialogFragments.SetWebDavAddresDialog
@@ -22,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     private val webDavAddressLiveData = MutableLiveData<String>()
     private lateinit var connectionDetailsFragment: ConnectionDetailsFragment
     private lateinit var networkScanner: NetworkScanner
-
+    private val possibleWebDavAddressLiveData = MutableLiveData<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,8 +46,12 @@ class MainActivity : AppCompatActivity() {
         connectionDetailsFragment =
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment
 
-        networkScanner = NetworkScanner(this)
+        networkScanner = NetworkScanner(this, possibleWebDavAddressLiveData)
         networkScanner.scanLocalNetwork()
+
+        possibleWebDavAddressLiveData.observe(this, Observer { address ->
+
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -76,6 +82,7 @@ class MainActivity : AppCompatActivity() {
             R.id.itemSetWebdavAddres -> {
                 val dialog = SetWebDavAddresDialog()
                 dialog.show(supportFragmentManager, "dialog")
+                Log.d("AddresList", possibleWebDavAddressLiveData.value.toString() )
                 true
             }
 
@@ -91,5 +98,3 @@ class MainActivity : AppCompatActivity() {
         webDavAddressLiveData.value = webDavAddress
     }
 }
-
-

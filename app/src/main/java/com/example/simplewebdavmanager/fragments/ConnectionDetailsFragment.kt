@@ -111,7 +111,6 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
         return v
     }
-
     private fun initSardine(): OkHttpSardine {
         // For the esp that hosts the webdav server its not necessary to set the credentials
         val sardine = OkHttpSardine()
