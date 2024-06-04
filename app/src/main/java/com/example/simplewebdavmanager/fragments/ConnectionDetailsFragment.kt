@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.activities.MainActivity
+import com.example.simplewebdavmanager.adapaters.AddressesAdapter
 import com.example.simplewebdavmanager.adapaters.FilesAdapter
 import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.dialogFragments.FileDetailsDialogFragment
@@ -37,9 +38,17 @@ import java.io.IOException
 import java.io.InputStream
 import kotlin.concurrent.thread
 
-class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListener {
+class ConnectionDetailsFragment :
+    Fragment(),
+    FilesAdapter.OnFileSelectedListener,
+    AddressesAdapter.OnAddressSelectedListener
+{
+
     private lateinit var webDavAddressLiveData: LiveData<String>
     private val possibleWebDavAddressLiveData = MutableLiveData<String>()
+    private lateinit var addressesAdapter: AddressesAdapter
+    private lateinit var addressesRecyclerView: RecyclerView
+    private val discoveredAddresses = mutableListOf<String>()
 
     private lateinit var v: View
     private lateinit var btnAddFile: FloatingActionButton
@@ -83,17 +92,20 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_connection_details, container, false)
         btnAddFile = v.findViewById(R.id.floatingActionButtonAddFile)
         btnBack = v.findViewById(R.id.floatingActionButtonBack)
         recyclerView = v.findViewById(R.id.recyclerFiles)
-
+        addressesRecyclerView = v.findViewById(R.id.recyclerAddresses)
         textSetAddress = v.findViewById(R.id.textViewSetAddress)
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         filesAdapter = FilesAdapter(mutableListOf(), this)
         recyclerView.adapter = filesAdapter
+
+        addressesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        addressesAdapter = AddressesAdapter(discoveredAddresses, this)
+        addressesRecyclerView.adapter = addressesAdapter
 
         btnAddFile.setOnClickListener {
             openFilePicker(this, pickFile)
@@ -111,8 +123,11 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
             listAvailableFiles()
             textSetAddress.visibility = View.GONE
             btnAddFile.visibility = View.VISIBLE
-
         }
+
+        // Initiali i want to hide the recycler for the files and show the recycler for the addresses
+        addressesRecyclerView.visibility = View.VISIBLE
+        recyclerView.visibility = View.GONE
 
         return v
     }
@@ -120,16 +135,15 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        networkScanner = NetworkScanner( requireContext(), possibleWebDavAddressLiveData)
+        networkScanner = NetworkScanner(requireContext(), possibleWebDavAddressLiveData)
         networkScanner.scanLocalNetwork()
 
-        possibleWebDavAddressLiveData.observe( viewLifecycleOwner, Observer { address ->
-            if (address.isNotEmpty()) {
-                webDavAddressLiveData.removeObservers(viewLifecycleOwner)
-                setWebDavAddress(address)
+        possibleWebDavAddressLiveData.observe(viewLifecycleOwner, Observer { address ->
+            if (address.isNotEmpty() && !discoveredAddresses.contains(address)) {
+                discoveredAddresses.add(address)
+                addressesAdapter.updateAddresses(discoveredAddresses)
                 Log.d("WebDavAddress", "WebDAV Address: $address")
             }
-
         })
     }
 
@@ -139,6 +153,13 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
 
     fun setWebDavAddress(webDavAddress: String) {
         this.webDavAddress = webDavAddress
+    }
+    override fun onAddressSelected(address: String) {
+        setWebDavAddress(address)
+        listAvailableFiles()
+        addressesRecyclerView.visibility = View.GONE
+        recyclerView.visibility = View.VISIBLE
+        networkScanner.stopScanning()
     }
 
 
@@ -152,6 +173,8 @@ class ConnectionDetailsFragment : Fragment(), FilesAdapter.OnFileSelectedListene
     }
 
     private fun listAvailableFiles(directoryPath: String = "") {
+        recyclerView.visibility = View.VISIBLE
+        addressesRecyclerView.visibility = View.GONE
         currentPath = directoryPath
         updateBackButtonVisibility()  // Update visibility of btnBack
         Log.d("WebDavAddress", "Directory Path: $directoryPath")

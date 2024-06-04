@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity() {
         connectionDetailsFragment =
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment
 
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

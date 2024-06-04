@@ -7,14 +7,21 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import java.net.HttpURLConnection
 import java.net.InetSocketAddress
-import java.net.Socket
+import java.net.URL
+import java.util.concurrent.Executors
 
 class NetworkScanner(private val context: Context, private val possibleWebDavAddressLiveData: MutableLiveData<String>) {
 
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private val executorService = Executors.newFixedThreadPool(10)
+    private var scanning = false
 
     fun scanLocalNetwork() {
+        if (scanning) return // Prevent multiple scans
+        scanning = true
+
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkRequest = NetworkRequest.Builder()
@@ -26,30 +33,35 @@ class NetworkScanner(private val context: Context, private val possibleWebDavAdd
                 val ipAddress = getLocalIpAddress(network)
                 if (ipAddress != null) {
                     val subnet = ipAddress.substringBeforeLast(".")
-                    val timeout = 100 // Timeout for socket connection in milliseconds
 
-                    Thread {
-                        for (i in 1..255) {
-                            val currentIPAddress = "$subnet.$i"
-                            val inetAddress = InetSocketAddress(currentIPAddress, 80)
-                            val socket = Socket()
-
+                    for (i in 1..255) {
+                        val currentIPAddress = "$subnet.$i"
+                        executorService.submit {
                             try {
-                                socket.connect(inetAddress, timeout)
-                                // Port 80 is open
-                                Log.d("DeviceFound", "Device at $currentIPAddress has port 80 open")
-                                possibleWebDavAddressLiveData.postValue(currentIPAddress)
-                                socket.close()
+                                val url = URL("http://$currentIPAddress")
+                                val connection = url.openConnection() as HttpURLConnection
+                                connection.connectTimeout = 100 // Timeout for connection in milliseconds
+                                connection.requestMethod = "HEAD"
+
+                                val responseCode = connection.responseCode
+                                Log.d("DeviceFound", "Response code: $responseCode for $currentIPAddress")
+                                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == 404) {
+                                   Log.d("DeviceFound", "Device at $currentIPAddress has port 80 open")
+                                    possibleWebDavAddressLiveData.postValue(currentIPAddress)
+                                }
+                                connection.disconnect()
                             } catch (e: Exception) {
-                                // Port 80 is not open
+                                // Port 80 is not open or connection failed
                             }
                         }
-                        stopScanning()
-                    }.start()
-
+                    }
                 } else {
                     Log.d("NetworkScanner", "No IPv4 address found")
                 }
+            }
+
+            override fun onLost(network: Network) {
+                stopScanning()
             }
         }
 
@@ -71,11 +83,13 @@ class NetworkScanner(private val context: Context, private val possibleWebDavAdd
     }
 
     fun stopScanning() {
+        scanning = false
         networkCallback?.let {
             val connectivityManager =
                 context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             connectivityManager.unregisterNetworkCallback(it)
+            networkCallback = null
         }
+        executorService.shutdownNow()
     }
 }
-
