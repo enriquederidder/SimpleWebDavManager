@@ -16,11 +16,23 @@ import com.example.simplewebdavmanager.activities.MainActivity
 import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.utils.SardineClient
 
+/**
+ * DialogFragment to show a list of options for downloading or moving a file
+ *
+ * @property file File object to be downloaded or moved
+ * @property sardineClient SardineClient instance to download the file
+ */
 class FileDownladOrMoveDialogFragment(
     private val file: File,
     private val sardineClient: SardineClient
 ) : DialogFragment() {
 
+    /**
+     * Called when the Dialogfragment is first created.
+     *
+     * @param savedInstanceState
+     * @return
+     */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialogView =
             requireActivity().layoutInflater.inflate(R.layout.dialog_download_or_move, null)

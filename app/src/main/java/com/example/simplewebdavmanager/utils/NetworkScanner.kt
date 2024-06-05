@@ -11,6 +11,12 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
 
+/**
+ * Class that scans the local network for devices that have port 80 open.
+ *
+ * @property context
+ * @property possibleWebDavAddressLiveData MutableLiveData to notify when a device has port 80 open
+ */
 class NetworkScanner(
     private val context: Context,
     private val possibleWebDavAddressLiveData: MutableLiveData<String>
@@ -20,6 +26,11 @@ class NetworkScanner(
     private val executorService = Executors.newFixedThreadPool(10)
     private var scanning = false
 
+    /**
+     * main function that scans the local network for devices that have port 80 open, form 1 to 255.
+     * Uses HttpURLConnection to check if a device has port 80.
+     *
+     */
     fun scanLocalNetwork() {
         if (scanning) return // Prevent multiple scans
         scanning = true
@@ -77,6 +88,12 @@ class NetworkScanner(
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback!!)
     }
 
+    /**
+     * Get the local IP address of the given network.
+     *
+     * @param network
+     * @return
+     */
     private fun getLocalIpAddress(network: Network): String? {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -91,6 +108,9 @@ class NetworkScanner(
         return null
     }
 
+    /**
+     * Stop scanning.
+     */
     fun stopScanning() {
         scanning = false
         networkCallback?.let {

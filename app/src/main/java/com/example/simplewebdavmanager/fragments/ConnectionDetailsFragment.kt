@@ -40,6 +40,7 @@ class ConnectionDetailsFragment :
     Fragment(),
     FilesAdapter.OnFileSelectedListener,
     AddressesAdapter.OnAddressSelectedListener {
+    private lateinit var v: View
 
     private lateinit var webDavAddressLiveData: LiveData<String>
     private val possibleWebDavAddressLiveData = MutableLiveData<String>()
@@ -47,7 +48,6 @@ class ConnectionDetailsFragment :
     private lateinit var addressesRecyclerView: RecyclerView
     private val discoveredAddresses = mutableListOf<String>()
 
-    private lateinit var v: View
     private lateinit var btnAddFile: FloatingActionButton
     private lateinit var btnBack: FloatingActionButton
     private lateinit var recyclerView: RecyclerView
@@ -58,6 +58,7 @@ class ConnectionDetailsFragment :
     private lateinit var sardineClient: SardineClient
     var currentPath: String = ""
 
+    // Would like to make this shorter
     private val pickFile =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -101,6 +102,14 @@ class ConnectionDetailsFragment :
             }
         }
 
+    /**
+     * Called when the fragment is first created.
+     *
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -166,10 +175,20 @@ class ConnectionDetailsFragment :
         })
     }
 
+    /**
+     * Returns the WebDAV address.
+     *
+     * @return
+     */
     fun getWebDavAddress(): String {
         return webDavAddress
     }
 
+    /**
+     * Sets the WebDAV address.
+     *
+     * @param webDavAddress
+     */
     private fun setWebDavAddress(webDavAddress: String) {
         this.webDavAddress = webDavAddress
     }
@@ -276,6 +295,9 @@ class ConnectionDetailsFragment :
         filesAdapter.filterFiles(query)
     }
 
+    /**
+     * Creates a new instance of the fragment and passes args
+     */
     companion object {
         @JvmStatic
         fun newInstance() =

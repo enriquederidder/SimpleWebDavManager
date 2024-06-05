@@ -19,6 +19,13 @@ class SardineClient(private val webDavAddress: String) {
         sardine.setCredentials("", "")
     }
 
+    /**
+     * Uploads a file to the webdav server
+     *
+     * @param fileName The name of the file
+     * @param fileContent The content of the file
+     * @param callback The callback function
+     */
     fun uploadFile(fileName: String, fileContent: String, callback: (Boolean) -> Unit) {
         thread {
             try {
@@ -33,6 +40,12 @@ class SardineClient(private val webDavAddress: String) {
         }
     }
 
+    /**
+     * Deletes a file from the webdav server
+     *
+     * @param filePath The path of the file
+     * @param callback The callback function
+     */
     fun deleteFile(filePath: String, callback: (Boolean) -> Unit) {
         thread {
             try {
@@ -46,6 +59,12 @@ class SardineClient(private val webDavAddress: String) {
         }
     }
 
+    /**
+     * Renames a file on the webdav server
+     *
+     * @param filePath The path of the file
+     * @param newFileName The new name of the file
+     */
     fun renameFile(
         filePath: String,
         newFileName: String,
@@ -65,6 +84,13 @@ class SardineClient(private val webDavAddress: String) {
         }
     }
 
+    /**
+     * Downloads a file from the webdav server
+     *
+     * @param file The file to download
+     * @param callback The callback function
+     */
+
     fun downloadFile(file: File, callback: (InputStream?) -> Unit) {
         thread {
             try {
@@ -78,6 +104,12 @@ class SardineClient(private val webDavAddress: String) {
         }
     }
 
+    /**
+     * Lists the files in a directory on the webdav server
+     *
+     * @param directoryPath The path of the directory
+     * @param callback The callback function
+     */
     fun listAvailableFiles(directoryPath: String, callback: (List<File>) -> Unit) {
         thread {
             try {

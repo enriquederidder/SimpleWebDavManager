@@ -3,7 +3,13 @@ package com.example.simplewebdavmanager.utils
 import android.view.View
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
+/**
+ * Object to help with UI animations
+ */
 object UIUtil {
+    /**
+     * Show the back button
+     */
     fun showBackButton(button: FloatingActionButton) {
         button.apply {
             visibility = View.VISIBLE
@@ -15,6 +21,9 @@ object UIUtil {
         }
     }
 
+    /**
+     * Hide the back button
+     */
     fun hideBackButton(button: FloatingActionButton) {
         button.apply {
             animate()

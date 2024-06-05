@@ -13,10 +13,22 @@ import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 import com.example.simplewebdavmanager.utils.SardineClient
 
+/**
+ * DialogFragment to display file details and allow user to rename or delete the file.
+ *
+ * @property file The file to display details for.
+ * @property sardineClient The SardineClient instance to use for file operations.
+ */
 class FileDetailsDialogFragment(
     private val file: File,
     private val sardineClient: SardineClient
 ) : DialogFragment() {
+    /**
+     * Creates the dialog for the FileDetailsDialogFragment.
+     *
+     * @param savedInstanceState
+     * @return
+     */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialogView =
             requireActivity().layoutInflater.inflate(R.layout.dialog_file_details, null)
@@ -69,6 +81,9 @@ class FileDetailsDialogFragment(
         return builder.create()
     }
 
+    /**
+     * Creates a new instance of the FileDetailsDialogFragment and passes the file and sardineClient.
+     */
     companion object {
         fun newInstance(file: File, sardineClient: SardineClient): FileDetailsDialogFragment {
             return FileDetailsDialogFragment(file, sardineClient)

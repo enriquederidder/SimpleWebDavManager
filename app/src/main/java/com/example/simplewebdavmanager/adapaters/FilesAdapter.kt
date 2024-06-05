@@ -21,14 +21,27 @@ class FilesAdapter(
     private val listener: OnFileSelectedListener
 ) : RecyclerView.Adapter<FilesAdapter.ViewHolder>() {
 
-    private var filteredFiles: MutableList<File> = files
+    private var filteredFiles: MutableList<File> = files // Initialize filteredFiles with files
 
+    /**
+     * Create a new ViewHolder
+     *
+     * @param parent
+     * @param viewType
+     * @return
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_files, parent, false)
         return ViewHolder(view)
     }
 
+    /**
+     * Bind the data to the ViewHolder
+     * Where i also check if a file is a dir or not, ans also set its corresponding image, and also the size
+     * @param holder
+     * @param position position of the current file
+     */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val file = filteredFiles[position]
         holder.fileNameTextView.text = file.name
@@ -36,7 +49,7 @@ class FilesAdapter(
         if (fileSize < 0) { // if it is a folder
             holder.fileSizeView.text = ""
         } else {
-            holder.fileSizeView.text = when {
+            holder.fileSizeView.text = when { // Convert the bytes to the appropriate unit
                 fileSize < 1024 -> "$fileSize B"
                 fileSize < 1024 * 1024 -> "${fileSize / 1024} KB"
                 fileSize < 1024 * 1024 * 1024 -> "${fileSize / (1024 * 1024)} MB"
@@ -44,7 +57,7 @@ class FilesAdapter(
             }
         }
 
-        when (file.type) {
+        when (file.type) { // Set the corresponding image based on the file type
             "png", "jpg", "jpeg" -> holder.imageView.setImageResource(R.drawable.image_document)
             "pdf" -> holder.imageView.setImageResource(R.drawable.pdf_document)
             "txt" -> holder.imageView.setImageResource(R.drawable.txt_documen)
@@ -56,21 +69,36 @@ class FilesAdapter(
             "docx", "doc", "docm", "dot", "dotx", "dotm" -> holder.imageView.setImageResource(R.drawable.word_document)
             else -> holder.imageView.setImageResource(android.R.drawable.ic_menu_report_image) // Default image
         }
-
+        // If folder set folder image
         if (file.isDirectory) {
             holder.imageView.setImageResource(R.drawable.folder)
         }
     }
 
+    /**
+     * Get the number of files
+     *
+     * @return
+     */
     override fun getItemCount(): Int {
         return filteredFiles.size
     }
 
+    /**
+     * Update the files list
+     *
+     * @param fileList
+     */
     fun updateFiles(fileList: List<File>) {
         files = fileList.toMutableList()
         filterFiles("")
     }
 
+    /**
+     * Add a new file to the list
+     *
+     * @param file
+     */
     fun deleteFile(file: File) {
         val index = files.indexOf(file)
         if (index != -1) {
@@ -79,6 +107,12 @@ class FilesAdapter(
         }
     }
 
+    /**
+     * Rename a file
+     *
+     * @param file
+     * @param newName
+     */
     fun renameFile(file: File, newName: String) {
         val index = files.indexOf(file)
         if (index != -1) {
@@ -101,20 +135,26 @@ class FilesAdapter(
         notifyDataSetChanged()
     }
 
+    /**
+     * ViewHolder class for the files
+     * Where i set the click listener for the file selection, both for thr file deatials(delete rename)
+     * and for long click it will ask for download or move
+     * @param itemView
+     */
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val fileNameTextView: TextView = itemView.findViewById(R.id.textViewFileName)
         val fileSizeView: TextView = itemView.findViewById(R.id.textViewSize)
         val imageView: ImageView = itemView.findViewById(R.id.imageViewFileTypeIcon)
 
         init {
-            itemView.setOnClickListener {
+            itemView.setOnClickListener {// Normal click
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val file = filteredFiles[position]
                     listener.onFileSelected(file)
                 }
             }
-            itemView.setOnLongClickListener {
+            itemView.setOnLongClickListener {// Long click
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val file = filteredFiles[position]
@@ -127,6 +167,9 @@ class FilesAdapter(
         }
     }
 
+    /**
+     * Interface for the file selection
+     */
     interface OnFileSelectedListener {
         fun onFileSelected(file: File)
         fun onFileSelectedLong(file: File)
