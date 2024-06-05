@@ -38,6 +38,11 @@ import java.io.IOException
 import java.io.InputStream
 import kotlin.concurrent.thread
 
+/**
+ * Main fragment for the application, that currently manages the webdav connection and its functionalities,
+ * it also manages the recyclers and filepicker
+ *
+ */
 class ConnectionDetailsFragment :
     Fragment(),
     FilesAdapter.OnFileSelectedListener,
@@ -93,28 +98,34 @@ class ConnectionDetailsFragment :
         savedInstanceState: Bundle?
     ): View {
         v = inflater.inflate(R.layout.fragment_connection_details, container, false)
+
+        // Initialize elements in the layout
         btnAddFile = v.findViewById(R.id.floatingActionButtonAddFile)
         btnBack = v.findViewById(R.id.floatingActionButtonBack)
         recyclerView = v.findViewById(R.id.recyclerFiles)
         addressesRecyclerView = v.findViewById(R.id.recyclerAddresses)
         textSetAddress = v.findViewById(R.id.textViewSetAddress)
+        btnAddFile.visibility = View.GONE
 
+        // Initialize the recycler for the files
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         filesAdapter = FilesAdapter(mutableListOf(), this)
         recyclerView.adapter = filesAdapter
 
+        // Initialize the recycler for the addresses
         addressesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         addressesAdapter = AddressesAdapter(discoveredAddresses, this)
         addressesRecyclerView.adapter = addressesAdapter
 
+        // Set click listeners for the buttons
         btnAddFile.setOnClickListener {
             openFilePicker(this, pickFile)
         }
         btnBack.setOnClickListener {
             navigateBack()
         }
-        btnAddFile.visibility = View.GONE
 
+        // Initialize the webdav address
         val activity = requireActivity() as MainActivity
         webDavAddressLiveData = activity.getWebDavAddressLiveData()
         webDavAddressLiveData.observe(viewLifecycleOwner) { webDavAddress ->
@@ -129,6 +140,11 @@ class ConnectionDetailsFragment :
 
         return v
     }
+
+    /**
+     * Scans the local network for available WebDAV addresses, and updates the UI accordingly.
+     *
+     */
     fun scanLocalNetwork() {
         networkScanner = NetworkScanner(requireContext(), possibleWebDavAddressLiveData)
         networkScanner.scanLocalNetwork()
@@ -149,6 +165,12 @@ class ConnectionDetailsFragment :
     fun setWebDavAddress(webDavAddress: String) {
         this.webDavAddress = webDavAddress
     }
+
+    /**
+     * Called when an address is selected from the addressesRecyclerView, and stops the scanning process.
+     *
+     * @param address The selected address.
+     */
     override fun onAddressSelected(address: String) {
         setWebDavAddress(address)
         listAvailableFiles()
@@ -158,6 +180,11 @@ class ConnectionDetailsFragment :
     }
 
 
+    /**
+     * Initializes a new OkHttpSardine instance with the provided credentials.
+     *
+     * @return
+     */
     private fun initSardine(): OkHttpSardine {
         // For the esp that hosts the webdav server its not necessary to set the credentials
         val sardine = OkHttpSardine()
@@ -167,6 +194,11 @@ class ConnectionDetailsFragment :
         return sardine
     }
 
+    /**
+     * Lists the available files and directories in the specified directory path.
+     *
+     * @param directoryPath
+     */
     private fun listAvailableFiles(directoryPath: String = "") {
         recyclerView.visibility = View.VISIBLE
         addressesRecyclerView.visibility = View.GONE
@@ -235,6 +267,11 @@ class ConnectionDetailsFragment :
         }
     }
 
+    /**
+     * Called when a file is selected from the filesRecyclerView.
+     *
+     * @param file
+     */
     override fun onFileSelected(file: File) {
         if (file.isDirectory) {
             navigateToDirectory(file)
@@ -244,7 +281,12 @@ class ConnectionDetailsFragment :
         }
     }
 
-
+    /**
+     * Uploads a file to the specified path on the WebDAV server.
+     *
+     * @param sardine The OkHttpSardine instance for the WebDAV server.
+     * @param fileName The name of the file to upload.
+     */
     private fun uploadFile(sardine: OkHttpSardine, fileName: String, fileContent: String) {
         val filePath =
             "http://$webDavAddress/$fileName" // Include the original file name in the path
@@ -252,12 +294,23 @@ class ConnectionDetailsFragment :
         sardine.put(filePath, data)
     }
 
+    /**
+     * Deletes a file from the WebDAV server.
+     *
+     * @param filePath The path of the file to delete.
+     */
     fun deleteFileFromServer(filePath: String) {
         val sardine = initSardine()
         val completeFilePath = "http://$webDavAddress/$filePath"  // Construct the complete URL
         sardine.delete(completeFilePath)
     }
 
+    /**
+     * Renames a file on the WebDAV server.
+     *
+     * @param filePath The path of the file to rename.
+     * @param newFileName The new name for the file.
+     */
     fun renameFileOnServer(filePath: String, newFileName: String) {
         thread {
             val sardine = initSardine()
@@ -275,6 +328,11 @@ class ConnectionDetailsFragment :
         }
     }
 
+    /**
+     * Downloads a file from the WebDAV server and saves it to the Downloads folder.
+     *
+     * @param file The File object representing the file to download.
+     */
     fun downloadFileFromServer(file: File) {
         val sardine = initSardine()
         val completeFilePath = "http://$webDavAddress/${file.path}"
@@ -327,6 +385,10 @@ class ConnectionDetailsFragment :
         }
     }
 
+    /**
+     * Navigates back to the parent directory of the current directory.
+     *
+     */
     private fun navigateBack() {
         // Check if the current path is not the root directory
         if (currentPath.isNotEmpty()) {
@@ -337,6 +399,11 @@ class ConnectionDetailsFragment :
         }
     }
 
+    /**
+     * Navigates to the specified directory on the WebDAV server.
+     *
+     * @param directory
+     */
     private fun navigateToDirectory(directory: File) {
         if (directory.isDirectory) {
             val relativePath = directory.path.removePrefix("http://$webDavAddress/")
@@ -344,6 +411,11 @@ class ConnectionDetailsFragment :
         }
     }
 
+    /**
+     * Updates the visibility of the back button based on the current path.
+     * If the path is the root directory, the back button is hidden.
+     *
+     */
     private fun updateBackButtonVisibility() {
         if (currentPath.isEmpty()) {
             UIUtil.hideBackButton(btnBack)
@@ -352,11 +424,21 @@ class ConnectionDetailsFragment :
         }
     }
 
+    /**
+     * Shows the file details dialog fragment.
+     *
+     * @param file selected file from the recycler
+     */
     override fun onFileSelectedLong(file: File) {
         val dialog = FileDownladOrMoveDialogFragment.newInstance(file)
         dialog.show(childFragmentManager, "file_details")
     }
 
+    /**
+     * Filters the files based on the provided query.
+     *
+     * @param query
+     */
     fun filterFiles(query: String) {
         filesAdapter.filterFiles(query)
     }

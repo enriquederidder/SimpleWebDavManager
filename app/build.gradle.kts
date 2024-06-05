@@ -1,3 +1,5 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 buildscript {
     repositories {
         mavenCentral()
@@ -9,6 +11,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("com.google.devtools.ksp")
+    id("org.jetbrains.dokka") version "1.9.20"
 
 }
 
@@ -52,7 +55,24 @@ android {
 
 
 }
+// Remove Inherited Members
+tasks.withType<DokkaTask>().configureEach {
+    dokkaSourceSets {
+        configureEach {
+            suppressInheritedMembers = true
 
+            // Set the visibility settings
+            documentedVisibilities.set(
+                listOf(
+                    org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC,
+                    org.jetbrains.dokka.DokkaConfiguration.Visibility.PRIVATE
+                )
+            )
+        }
+
+    }
+
+}
 
 
 dependencies {
@@ -61,6 +81,8 @@ dependencies {
     implementation("com.github.lookfirst:sardine:sardine-5.10")
     implementation ("androidx.activity:activity-ktx:1.9.0")
     implementation ("androidx.fragment:fragment-ktx:1.7.0")
+    implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.9.20")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

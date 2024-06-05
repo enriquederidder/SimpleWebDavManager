@@ -9,6 +9,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.dataSet.File
 
+/**
+ * Adapter for the RecyclerView in the ConnectionDetailFragment, this will show all the files with its type image
+ * Also calculates the bytes to the appropriate unit like KB, MB, GB
+ *
+ * @property files the file retrived from the webdav server
+ * @property listener the listener for the file selection
+ */
 class FilesAdapter(
     private var files: MutableList<File>,
     private val listener: OnFileSelectedListener
@@ -80,6 +87,11 @@ class FilesAdapter(
         }
     }
 
+    /**
+     * Filter the files based on the query
+     *
+     * @param query strign introduced by the user
+     */
     fun filterFiles(query: String) {
         filteredFiles = if (query.isEmpty()) {
             files

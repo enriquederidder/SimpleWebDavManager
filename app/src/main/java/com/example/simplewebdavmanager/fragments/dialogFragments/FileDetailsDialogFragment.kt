@@ -1,6 +1,5 @@
 package com.example.simplewebdavmanager.fragments.dialogFragments
 
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
@@ -14,8 +13,13 @@ import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 import kotlin.concurrent.thread
 
+/**
+ * FragmentDialog that displays info about a file and the possibility to rename or delete it.
+ * Dialog is laucnhed when clicked on a file in the recycler view.
+ *
+ * @property file the selected file
+ */
 class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
-    @SuppressLint("MissingInflatedId")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         val dialogView =

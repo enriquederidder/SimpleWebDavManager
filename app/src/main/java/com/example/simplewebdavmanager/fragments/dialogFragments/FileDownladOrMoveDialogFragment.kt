@@ -1,6 +1,5 @@
 package com.example.simplewebdavmanager.fragments.dialogFragments
 
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
@@ -10,9 +9,14 @@ import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 import kotlin.concurrent.thread
 
+/**
+ * DialogFragment to Move or Download a file.
+ * This dialog is launched when the user long clicks on the selected file in the recycler view.
+ *
+ * @property file the selected file
+ */
 class FileDownladOrMoveDialogFragment(private val file: File) : DialogFragment() {
 
-    @SuppressLint("MissingInflatedId")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         val dialogView =
@@ -34,7 +38,7 @@ class FileDownladOrMoveDialogFragment(private val file: File) : DialogFragment()
             }
 
             .setNeutralButton("Move") { dialog, _ ->
-
+                    // TODO
                 dialog.dismiss()
             }
             .setNegativeButton("Exit") { dialog, _ ->

@@ -9,6 +9,10 @@ import androidx.fragment.app.DialogFragment
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.activities.MainActivity
 
+/**
+ * DialogFragment to set the WebDAV address manually
+ *
+ */
 class SetWebDavAddresDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

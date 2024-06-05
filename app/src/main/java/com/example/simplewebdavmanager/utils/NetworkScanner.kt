@@ -50,7 +50,7 @@ class NetworkScanner(private val context: Context, private val possibleWebDavAdd
                                 }
                                 connection.disconnect()
                             } catch (e: Exception) {
-                                // Port 80 is not open or connection failed
+                                // connection failed
                             }
                         }
                     }

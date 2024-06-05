@@ -19,13 +19,21 @@ import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 import com.example.simplewebdavmanager.fragments.dialogFragments.SetWebDavAddresDialog
 import com.example.simplewebdavmanager.utils.NetworkScanner
 
-
+/**
+ * Class for the main activity of the app, that manages the menu items clicks and the search view
+ *
+ */
 class MainActivity : AppCompatActivity() {
 
     private val webDavAddressLiveData = MutableLiveData<String>()
     private lateinit var connectionDetailsFragment: ConnectionDetailsFragment
-    private var searchNetworkMenuItem: MenuItem? = null
 
+    /**
+     * I disable the dark mode and enable edge to edge for the activity
+     * And initialize the fragmentContainer
+     *
+     * @param savedInstanceState
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -48,6 +56,12 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    /**
+     * Creation of the menu items and the search view
+     *
+     * @param menu selected item in the menu
+     * @return
+     */
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_items, menu)
 
@@ -72,6 +86,12 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    /**
+     * Handle the menu items clicks
+     *
+     * @param item selected item in the menu
+     * @return
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.itemSetWebdavAddres -> {
@@ -91,10 +111,21 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    /**
+     * Get the live data of the webdav address
+     *
+     * @return LiveData
+     */
     fun getWebDavAddressLiveData(): LiveData<String> {
         return webDavAddressLiveData
     }
 
+    /**
+     * Set the webdav address
+     *
+     * @param webDavAddress
+     */
     fun setWebDavAddress(webDavAddress: String) {
         webDavAddressLiveData.value = webDavAddress
     }
