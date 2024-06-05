@@ -1,7 +1,6 @@
 package com.example.simplewebdavmanager.activities
 
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.enableEdgeToEdge
@@ -10,14 +9,11 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.marginEnd
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
 import com.example.simplewebdavmanager.fragments.dialogFragments.SetWebDavAddresDialog
-import com.example.simplewebdavmanager.utils.NetworkScanner
 
 /**
  * Class for the main activity of the app, that manages the menu items clicks and the search view
@@ -99,6 +95,7 @@ class MainActivity : AppCompatActivity() {
                 dialog.show(supportFragmentManager, "dialog")
                 true
             }
+
             R.id.itemSearchNetwork -> {
                 val connectionDetailsFragment: ConnectionDetailsFragment =
                     supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment

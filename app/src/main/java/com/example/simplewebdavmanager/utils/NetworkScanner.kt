@@ -11,7 +11,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
 
-class NetworkScanner(private val context: Context, private val possibleWebDavAddressLiveData: MutableLiveData<String>) {
+class NetworkScanner(
+    private val context: Context,
+    private val possibleWebDavAddressLiveData: MutableLiveData<String>
+) {
 
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
     private val executorService = Executors.newFixedThreadPool(10)
@@ -39,13 +42,20 @@ class NetworkScanner(private val context: Context, private val possibleWebDavAdd
                             try {
                                 val url = URL("http://$currentIPAddress")
                                 val connection = url.openConnection() as HttpURLConnection
-                                connection.connectTimeout = 100 // Timeout for connection in milliseconds
+                                connection.connectTimeout =
+                                    100 // Timeout for connection in milliseconds
                                 connection.requestMethod = "HEAD"
 
                                 val responseCode = connection.responseCode
-                                Log.d("DeviceFound", "Response code: $responseCode for $currentIPAddress")
+                                Log.d(
+                                    "DeviceFound",
+                                    "Response code: $responseCode for $currentIPAddress"
+                                )
                                 if (responseCode == HttpURLConnection.HTTP_OK || responseCode == 404) {
-                                   Log.d("DeviceFound", "Device at $currentIPAddress has port 80 open")
+                                    Log.d(
+                                        "DeviceFound",
+                                        "Device at $currentIPAddress has port 80 open"
+                                    )
                                     possibleWebDavAddressLiveData.postValue(currentIPAddress)
                                 }
                                 connection.disconnect()

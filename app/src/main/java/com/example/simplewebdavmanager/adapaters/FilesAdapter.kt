@@ -66,8 +66,8 @@ class FilesAdapter(
         return filteredFiles.size
     }
 
-    fun updateFiles(fileList: MutableList<File>) {
-        files = fileList
+    fun updateFiles(fileList: List<File>) {
+        files = fileList.toMutableList()
         filterFiles("")
     }
 

@@ -11,17 +11,13 @@ import com.example.simplewebdavmanager.R
 import com.example.simplewebdavmanager.adapaters.FilesAdapter
 import com.example.simplewebdavmanager.dataSet.File
 import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
-import kotlin.concurrent.thread
+import com.example.simplewebdavmanager.utils.SardineClient
 
-/**
- * FragmentDialog that displays info about a file and the possibility to rename or delete it.
- * Dialog is laucnhed when clicked on a file in the recycler view.
- *
- * @property file the selected file
- */
-class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
+class FileDetailsDialogFragment(
+    private val file: File,
+    private val sardineClient: SardineClient
+) : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-
         val dialogView =
             requireActivity().layoutInflater.inflate(R.layout.dialog_file_details, null)
         val fileName = dialogView.findViewById<EditText>(R.id.editTextFileName)
@@ -35,37 +31,35 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
             .setPositiveButton("Rename") { dialog, _ ->
                 val newName = fileName.text.toString()
                 if (newName.isNotEmpty()) {
-                    thread {
-                        try {
-                            connectionDetailsFragment = parentFragment
-                            connectionDetailsFragment?.renameFileOnServer(file.path, newName)
-                        } catch (e: Exception) {
-                            Log.e("RenameFile", "Error renaming file", e)
+                    sardineClient.renameFile(
+                        file.path,
+                        newName,
+                        connectionDetailsFragment?.currentPath ?: ""
+                    ) { success ->
+                        if (success) {
+                            connectionDetailsFragment?.let {
+                                val adapter =
+                                    it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
+                                adapter?.renameFile(file, newName)
+                            }
+                        } else {
+                            Log.e("RenameFile", "Error renaming file")
                         }
-                    }
-                    connectionDetailsFragment?.let {
-                        val adapter =
-                            it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
-                        adapter?.renameFile(file, newName)
                     }
                 }
                 dialog.dismiss()
             }
-
             .setNeutralButton("Delete") { dialog, _ ->
-                thread {
-                    try {
-                        connectionDetailsFragment = parentFragment
-                        connectionDetailsFragment?.deleteFileFromServer(file.path)
-
-                    } catch (e: Exception) {
-                        Log.e("DeleteFile", "Error deleting file", e)
+                sardineClient.deleteFile(file.path) { success ->
+                    if (success) {
+                        connectionDetailsFragment?.let {
+                            val adapter =
+                                it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
+                            adapter?.deleteFile(file)
+                        }
+                    } else {
+                        Log.e("DeleteFile", "Error deleting file")
                     }
-                }
-                connectionDetailsFragment?.let {
-                    val adapter =
-                        it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
-                    adapter?.deleteFile(file)
                 }
                 dialog.dismiss()
             }
@@ -76,9 +70,8 @@ class FileDetailsDialogFragment(private val file: File) : DialogFragment() {
     }
 
     companion object {
-        fun newInstance(file: File): FileDetailsDialogFragment {
-            return FileDetailsDialogFragment(file)
+        fun newInstance(file: File, sardineClient: SardineClient): FileDetailsDialogFragment {
+            return FileDetailsDialogFragment(file, sardineClient)
         }
     }
-
 }
