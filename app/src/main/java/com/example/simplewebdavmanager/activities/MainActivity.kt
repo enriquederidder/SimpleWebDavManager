@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.marginEnd
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     private val webDavAddressLiveData = MutableLiveData<String>()
     private lateinit var connectionDetailsFragment: ConnectionDetailsFragment
-    private val possibleWebDavAddressLiveData = MutableLiveData<String>()
+    private var searchNetworkMenuItem: MenuItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem.actionView as SearchView
         searchView.queryHint = "Search..."
+        searchView.maxWidth = Integer.MAX_VALUE
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -75,14 +77,20 @@ class MainActivity : AppCompatActivity() {
             R.id.itemSetWebdavAddres -> {
                 val dialog = SetWebDavAddresDialog()
                 dialog.show(supportFragmentManager, "dialog")
-                //Log.d("AddresList", possibleWebDavAddressLiveData.value.toString() )
+                true
+            }
+            R.id.itemSearchNetwork -> {
+                val connectionDetailsFragment: ConnectionDetailsFragment =
+                    supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as ConnectionDetailsFragment
+                item.setIcon(R.drawable.network_wired)
+                connectionDetailsFragment.scanLocalNetwork()
+
                 true
             }
 
             else -> super.onOptionsItemSelected(item)
         }
     }
-
     fun getWebDavAddressLiveData(): LiveData<String> {
         return webDavAddressLiveData
     }

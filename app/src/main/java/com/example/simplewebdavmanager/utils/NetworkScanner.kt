@@ -8,7 +8,6 @@ import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import java.net.HttpURLConnection
-import java.net.InetSocketAddress
 import java.net.URL
 import java.util.concurrent.Executors
 

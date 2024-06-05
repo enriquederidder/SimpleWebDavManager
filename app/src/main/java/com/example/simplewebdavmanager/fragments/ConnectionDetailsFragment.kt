@@ -121,8 +121,6 @@ class ConnectionDetailsFragment :
             this.webDavAddress = webDavAddress
             // Call listAvailableFiles() when the WebDAV address is set
             listAvailableFiles()
-            textSetAddress.visibility = View.GONE
-            btnAddFile.visibility = View.VISIBLE
         }
 
         // Initiali i want to hide the recycler for the files and show the recycler for the addresses
@@ -131,10 +129,7 @@ class ConnectionDetailsFragment :
 
         return v
     }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    fun scanLocalNetwork() {
         networkScanner = NetworkScanner(requireContext(), possibleWebDavAddressLiveData)
         networkScanner.scanLocalNetwork()
 
@@ -175,6 +170,8 @@ class ConnectionDetailsFragment :
     private fun listAvailableFiles(directoryPath: String = "") {
         recyclerView.visibility = View.VISIBLE
         addressesRecyclerView.visibility = View.GONE
+        textSetAddress.visibility = View.GONE
+        btnAddFile.visibility = View.VISIBLE
         currentPath = directoryPath
         updateBackButtonVisibility()  // Update visibility of btnBack
         Log.d("WebDavAddress", "Directory Path: $directoryPath")
