@@ -3,7 +3,6 @@ package com.example.simplewebdavmanager.utils
 import com.example.simplewebdavmanager.dataSet.File
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import java.io.IOException
-import java.io.InputStream
 import kotlin.concurrent.thread
 
 /**
@@ -85,26 +84,6 @@ class SardineClient(private val webDavAddress: String) {
     }
 
     /**
-     * Downloads a file from the webdav server
-     *
-     * @param file The file to download
-     * @param callback The callback function
-     */
-
-    fun downloadFile(file: File, callback: (InputStream?) -> Unit) {
-        thread {
-            try {
-                val completeFilePath = "http://$webDavAddress/${file.path}"
-                val inputStream = sardine.get(completeFilePath)
-                callback(inputStream)
-            } catch (e: IOException) {
-                e.printStackTrace()
-                callback(null)
-            }
-        }
-    }
-
-    /**
      * Lists the files in a directory on the webdav server
      *
      * @param directoryPath The path of the directory
@@ -120,7 +99,7 @@ class SardineClient(private val webDavAddress: String) {
                         name = file.name,
                         path = file.href.toString(),
                         size = file.contentLength,
-                        type = file.contentType,
+                        type = file.name.substringAfterLast("."),
                         lastModified = file.modified,
                         isDirectory = file.isDirectory
                     )
@@ -136,4 +115,5 @@ class SardineClient(private val webDavAddress: String) {
             }
         }
     }
+
 }

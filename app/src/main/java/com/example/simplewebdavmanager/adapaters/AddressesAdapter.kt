@@ -8,10 +8,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.simplewebdavmanager.R
 
 /**
- * Adapter for the RecyclerView in the ConnectionDetailsFragment
+ * Adapter for the RecyclerView in the ConnectionDetailsFragment to display IP addresses.
  *
  * @property addresses List of IP addresses
  * @property listener OnAddressSelectedListener to handle address selection
+ *
  */
 class AddressesAdapter(
     private var addresses: List<String>,

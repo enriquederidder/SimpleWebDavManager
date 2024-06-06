@@ -1,90 +1,43 @@
 package com.example.simplewebdavmanager.fragments.dialogFragments
 
 import android.app.Dialog
-import android.content.ContentValues
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
-import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.example.simplewebdavmanager.R
-import com.example.simplewebdavmanager.activities.MainActivity
 import com.example.simplewebdavmanager.dataSet.File
-import com.example.simplewebdavmanager.utils.SardineClient
+import com.example.simplewebdavmanager.fragments.ConnectionDetailsFragment
+import kotlin.concurrent.thread
 
 /**
- * DialogFragment to show a list of options for downloading or moving a file
- *
- * @property file File object to be downloaded or moved
- * @property sardineClient SardineClient instance to download the file
+ * DialogFragment to show options to download or move a file
  */
-class FileDownladOrMoveDialogFragment(
-    private val file: File,
-    private val sardineClient: SardineClient
-) : DialogFragment() {
+class FileDownladOrMoveDialogFragment(private val file: File) : DialogFragment() {
 
     /**
-     * Called when the Dialogfragment is first created.
-     *
-     * @param savedInstanceState
-     * @return
+     * Creates the dialog
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+
         val dialogView =
             requireActivity().layoutInflater.inflate(R.layout.dialog_download_or_move, null)
 
+        var connectionDetailsFragment: ConnectionDetailsFragment?
+
         val builder = AlertDialog.Builder(requireContext())
         builder.setView(dialogView)
-            .setTitle("File Download or Move")
+            .setTitle("File Downlad or Move")
             .setPositiveButton("Download") { dialog, _ ->
-                sardineClient.downloadFile(file) { inputStream ->
-                    if (inputStream != null) {
-                        val activity = requireActivity() as MainActivity
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            val values = ContentValues().apply {
-                                put(MediaStore.Downloads.DISPLAY_NAME, file.name)
-                                put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
-                                put(
-                                    MediaStore.Downloads.RELATIVE_PATH,
-                                    Environment.DIRECTORY_DOWNLOADS
-                                )
-                            }
-                            val resolver = activity.contentResolver
-                            val uri: Uri? =
-                                resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                            uri?.let {
-                                resolver.openOutputStream(it).use { outputStream ->
-                                    inputStream.copyTo(outputStream!!)
-                                }
-                            }
-                        } else {
-                            activity.runOnUiThread {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Download not supported on this device version",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                        activity.runOnUiThread {
-                            Toast.makeText(
-                                requireContext(),
-                                "File downloaded successfully to Downloads folder",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    } else {
-                        Log.e("DownloadFile", "Error downloading file")
-                    }
+                thread {
+                    connectionDetailsFragment = parentFragment as? ConnectionDetailsFragment
+                    connectionDetailsFragment?.downloadFileFromServer(file)
                 }
+
                 dialog.dismiss()
             }
+
             .setNeutralButton("Move") { dialog, _ ->
-                // TODO: Implement move functionality
+
                 dialog.dismiss()
             }
             .setNegativeButton("Exit") { dialog, _ ->
@@ -94,8 +47,8 @@ class FileDownladOrMoveDialogFragment(
     }
 
     companion object {
-        fun newInstance(file: File, sardineClient: SardineClient): FileDownladOrMoveDialogFragment {
-            return FileDownladOrMoveDialogFragment(file, sardineClient)
+        fun newInstance(file: File): FileDownladOrMoveDialogFragment {
+            return FileDownladOrMoveDialogFragment(file)
         }
     }
 }

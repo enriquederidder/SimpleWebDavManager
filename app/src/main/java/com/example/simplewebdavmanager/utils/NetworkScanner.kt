@@ -54,7 +54,7 @@ class NetworkScanner(
                                 val url = URL("http://$currentIPAddress")
                                 val connection = url.openConnection() as HttpURLConnection
                                 connection.connectTimeout =
-                                    100 // Timeout for connection in milliseconds
+                                    500 // Timeout for connection in milliseconds, The ESP is slow to respond btw
                                 connection.requestMethod = "HEAD"
 
                                 val responseCode = connection.responseCode

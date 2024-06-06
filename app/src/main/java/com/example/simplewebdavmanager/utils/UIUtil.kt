@@ -1,6 +1,7 @@
 package com.example.simplewebdavmanager.utils
 
 import android.view.View
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 /**
@@ -16,7 +17,8 @@ object UIUtil {
             animate()
                 .translationY(0f)
                 .alpha(1f)
-                .setDuration(300)
+                .setDuration(500)
+                .setInterpolator(FastOutSlowInInterpolator())
                 .start()
         }
     }
@@ -29,8 +31,9 @@ object UIUtil {
             animate()
                 .translationY(height.toFloat())
                 .alpha(0f)
-                .setDuration(300)
+                .setDuration(500)
                 .withEndAction { visibility = View.GONE }
+                .setInterpolator(FastOutSlowInInterpolator())
                 .start()
         }
     }

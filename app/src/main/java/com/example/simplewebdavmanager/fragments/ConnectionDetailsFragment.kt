@@ -1,8 +1,13 @@
 package com.example.simplewebdavmanager.fragments
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -29,7 +34,9 @@ import com.example.simplewebdavmanager.utils.NetworkScanner
 import com.example.simplewebdavmanager.utils.SardineClient
 import com.example.simplewebdavmanager.utils.UIUtil
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import java.io.InputStream
+import kotlin.concurrent.thread
 
 /**
  * Main fragment for the application, that currently manages the webdav connection and its functionalities,
@@ -80,6 +87,7 @@ class ConnectionDetailsFragment :
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
+                                    listAvailableFiles()
                                 } else {
                                     activity?.runOnUiThread {
                                         Toast.makeText(
@@ -217,11 +225,12 @@ class ConnectionDetailsFragment :
         textSetAddress.visibility = View.GONE
         btnAddFile.visibility = View.VISIBLE
         currentPath = directoryPath
-        updateBackButtonVisibility()
         Log.d("WebDavAddress", "Directory Path: $directoryPath")
         sardineClient.listAvailableFiles(directoryPath) { files ->
             activity?.runOnUiThread {
                 filesAdapter.updateFiles(files)
+                updateBackButtonVisibility()
+
             }
         }
     }
@@ -238,6 +247,16 @@ class ConnectionDetailsFragment :
             val dialog = FileDetailsDialogFragment.newInstance(file, sardineClient)
             dialog.show(childFragmentManager, "file_details")
         }
+    }
+
+    /**
+     * Shows the file details dialog fragment.
+     *
+     * @param file selected file from the recycler
+     */
+    override fun onFileSelectedLong(file: File) {
+        val dialog = FileDownladOrMoveDialogFragment.newInstance(file)
+        dialog.show(childFragmentManager, "file_details")
     }
 
     /**
@@ -276,14 +295,65 @@ class ConnectionDetailsFragment :
         }
     }
 
-    /**
-     * Shows the file details dialog fragment.
-     *
-     * @param file selected file from the recycler
-     */
-    override fun onFileSelectedLong(file: File) {
-        val dialog = FileDownladOrMoveDialogFragment.newInstance(file, sardineClient)
-        dialog.show(childFragmentManager, "file_details")
+    private fun initSardine(): OkHttpSardine {
+        // For the esp that hosts the webdav server its not necessary to set the credentials
+        val sardine = OkHttpSardine()
+        val userName = ""
+        val passWord = ""
+        sardine.setCredentials(userName, passWord)
+        return sardine
+    }
+
+    fun downloadFileFromServer(file: File) {
+        val sardine = initSardine()
+        val completeFilePath = "http://$webDavAddress/${file.path}"
+
+        thread {
+            try {
+                val inputStream = sardine.get(completeFilePath) // Download file content
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // MediaStore API
+                    val values = ContentValues().apply {
+                        put(MediaStore.Downloads.DISPLAY_NAME, file.name)
+                        put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
+                        put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                    }
+                    val resolver = requireContext().contentResolver
+                    val uri: Uri? =
+                        resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+
+                    uri?.let {
+                        resolver.openOutputStream(it).use { outputStream ->
+                            inputStream.copyTo(outputStream!!)
+                        }
+                    }
+                } else {
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "Download not supported on this device version",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                }
+
+                activity?.runOnUiThread {
+                    Toast.makeText(
+                        requireContext(),
+                        "File downloaded successfully to Downloads folder",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Log.e("Download", "Error downloading file", e)
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "Error downloading file", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+        }
     }
 
     /**

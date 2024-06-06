@@ -48,30 +48,34 @@ class FileDetailsDialogFragment(
                         newName,
                         connectionDetailsFragment?.currentPath ?: ""
                     ) { success ->
-                        if (success) {
-                            connectionDetailsFragment?.let {
-                                val adapter =
-                                    it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
-                                adapter?.renameFile(file, newName)
+                        activity?.runOnUiThread {
+                            if (success) { // TODO doesn't work
+                            } else {
+                                Log.e("RenameFile", "Error renaming file")
                             }
-                        } else {
-                            Log.e("RenameFile", "Error renaming file")
                         }
+                    }
+                    connectionDetailsFragment?.let {
+                        val adapter =
+                            it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
+                        adapter?.renameFile(file, newName)
                     }
                 }
                 dialog.dismiss()
             }
             .setNeutralButton("Delete") { dialog, _ ->
                 sardineClient.deleteFile(file.path) { success ->
-                    if (success) {
-                        connectionDetailsFragment?.let {
-                            val adapter =
-                                it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
-                            adapter?.deleteFile(file)
+                    activity?.runOnUiThread {
+                        if (success) { // TODO doesn't work
+                        } else {
+                            Log.e("DeleteFile", "Error deleting file")
                         }
-                    } else {
-                        Log.e("DeleteFile", "Error deleting file")
                     }
+                }
+                connectionDetailsFragment?.let {
+                    val adapter =
+                        it.view?.findViewById<RecyclerView>(R.id.recyclerFiles)?.adapter as? FilesAdapter
+                    adapter?.deleteFile(file)
                 }
                 dialog.dismiss()
             }
@@ -79,6 +83,7 @@ class FileDetailsDialogFragment(
                 dialog.dismiss()
             }
         return builder.create()
+
     }
 
     /**

@@ -17,7 +17,7 @@ import com.example.simplewebdavmanager.fragments.dialogFragments.SetWebDavAddres
 
 /**
  * Class for the main activity of the app, that manages the menu items clicks and the search view
- *
+ * @author Pedro Enrique de Ridder
  */
 class MainActivity : AppCompatActivity() {
 
