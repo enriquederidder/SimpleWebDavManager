@@ -25,10 +25,10 @@ class SardineClient(private val webDavAddress: String) {
      * @param fileContent The content of the file
      * @param callback The callback function
      */
-    fun uploadFile(fileName: String, fileContent: String, callback: (Boolean) -> Unit) {
+    fun uploadFile(fileName: String, fileContent: String, currentPath: String, callback: (Boolean) -> Unit) {
         thread {
             try {
-                val filePath = "http://$webDavAddress/$fileName"
+                val filePath = "http://$webDavAddress/$currentPath/$fileName"
                 val data = fileContent.toByteArray()
                 sardine.put(filePath, data)
                 callback(true)

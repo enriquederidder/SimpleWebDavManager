@@ -78,7 +78,7 @@ class ConnectionDetailsFragment :
                         val content = inputStream?.bufferedReader().use { it?.readText() }
                         inputStream?.close()
                         content?.let { fileContent ->
-                            sardineClient.uploadFile(fileName, fileContent) { success ->
+                            sardineClient.uploadFile(fileName, fileContent, currentPath) { success ->
                                 if (success) {
                                     activity?.runOnUiThread {
                                         Toast.makeText(
